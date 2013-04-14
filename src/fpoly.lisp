@@ -170,20 +170,17 @@ Returns zero if this is outside the array"
 
 ;;; -----------------------
 
-(defun merge-powers (powers1 powers2)
-  "Add powers together"
-  (labels ((rec (powers1 powers2 acc)
-			 (cond
-			   ((null powers1)
-				(append acc powers2))
-			   ((null powers2)
-				(append acc powers1))
-			   (t (rec (cdr powers1)
-					   (cdr powers2)
-					   (append acc (list (+ (car powers1) (car powers2)))))))))
-	(rec powers1 powers2 nil)))
-				
-(defun merge-powers% (bindings1 bindings2)
+(defun test-list (test source-list result-list)
+  (labels ((rec (source-list result-list)
+			 (if (or (null source-list) (null result-list))
+				 (values nil nil)
+				 (let ((result (funcall test (car source-list))))
+				   (if result
+					   (values (car result-list) t)
+					   (rec (cdr source-list) (cdr result-list)))))))
+	(rec source-list result-list)))
+
+(defun merge-powers (vars1 powers1 vars2 powers2)
   "add all the powers together"
   (labels ((rec (bindings1 bindings2 acc)
 			 (cond
@@ -205,7 +202,10 @@ Returns zero if this is outside the array"
 					  (rec (cdr bindings1)
 						   bindings2
 						   (append acc (list (car bindings1))))))))))
-    (rec bindings1 bindings2 nil)))
+    (mapcar #'cdr
+			(rec (mapcar #'cons vars1 powers1)
+				 (mapcar #'cons vars2 powers2)
+				 nil))))
 
 (defun merge-vars (vars1 vars2)
   (labels ((rec (vars1 vars2 acc)
@@ -349,7 +349,10 @@ Returns zero if this is outside the array"
 		 (p (make-fpoly vars degree)))
 	(docoeffs (p1 coeff1 powers1 index1)
 	  (docoeffs (p2 coeff2 powers2 index2)
-		(incf (apply #'fpoly-coeff p (merge-powers powers1 powers2))
+		(incf (apply #'fpoly-coeff
+					 p
+					 (merge-powers (fpoly-vars p1) powers1
+								   (fpoly-vars p2) powers2))
 			  (* coeff1 coeff2))))
 	p))
 
