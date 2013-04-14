@@ -14,7 +14,7 @@
   (:documentation "Generic multiplication of polynomials"))
 
 (defgeneric fpoly-div (p1 p2)
-  (:documenation "Generic division of polynomials"))
+  (:documentation "Generic division of polynomials"))
 
 (defgeneric fpoly-eql (p1 p2)
   (:documentation "Generic equality of polynomials"))
@@ -186,7 +186,7 @@ Always choose the (absolute value) which is smaller of the two options"
 
 ;; ------------- eval ----------------
 
-(defmethod fpoly-eval ((poly number))
+(defmethod fpoly-eval ((poly number) bindings)
   poly)
 
 (defmethod fpoly-eval ((poly fpoly) bindings)
