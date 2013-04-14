@@ -1,6 +1,5 @@
 
-
-(in-package #:fpoly)
+(in-package :asdf)
 
 (defsystem #:fpoly
   :name "F-POLY"
@@ -15,9 +14,9 @@
   ((:module
     :src 
     :components ((:file "package")
-				 (:file "utils")
-				 (:file "fpoly" :depends-on ("utils"))
-				 (:file "operators" :depends-on ("utils" "fpoly"))))))
+				 (:file "utils" :depends-on ("package"))
+				 (:file "fpoly" :depends-on ("package" "utils"))
+				 (:file "operators" :depends-on ("package" "utils" "fpoly"))))))
 
 
 
