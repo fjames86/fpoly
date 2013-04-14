@@ -77,9 +77,7 @@
 			(,gc (fpoly-coeffs ,gp)))
 	   (declare (ignorable ,gc))
        (do ((,gi 0 (1+ ,gi))
-			(,gpowers (gen-all-powers (length (fpoly-vars ,gp))
-									  (fpoly-degree ,gp))
-					  (cdr ,gpowers)))
+			(,gpowers (fpoly-powers ,gp) (cdr ,gpowers)))
 		   ((null ,gpowers))
 		 (let ((,powers-var (car ,gpowers)))
 		   (declare (ignorable ,powers-var))
@@ -90,7 +88,8 @@
   ((vars :reader fpoly-vars :initarg :vars)
    (degree :reader fpoly-degree :initarg :degree :initform 0)
    (size :accessor fpoly-size :initarg :size)
-   (coeffs :reader fpoly-coeffs :writer set-fpoly-coeffs :initarg :coeffs)))
+   (coeffs :reader fpoly-coeffs :writer set-fpoly-coeffs :initarg :coeffs)
+   (powers :reader fpoly-powers :initarg :powers)))
 
 (defun make-fpoly (vars degree &optional coeffs)  
   "Make an fpoly object"
@@ -99,6 +98,7 @@
 				   :vars vars
 				   :degree degree
 				   :size size
+				   :powers (gen-all-powers (length vars) degree)
 				   :coeffs (cond
 							 ((null coeffs) 
 							  (make-array size :initial-element 0))
@@ -162,7 +162,7 @@ Returns zero if this is outside the array"
 (defmethod print-object ((p fpoly) stream)
   (if *print-escape*
       (print-unreadable-object (p stream :type t)
-		(format stream ":VARS ~A :DEGREE ~A COEFFS: ~A"
+		(format stream ":VARS ~A :DEGREE ~A :COEFFS ~A"
 				(fpoly-vars p)
 				(fpoly-degree p)
 				(fpoly-coeffs p)))
