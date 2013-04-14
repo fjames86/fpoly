@@ -11,12 +11,8 @@
 		   #:fpoly-add
 		   #:fpoly-sub
 		   #:fpoly-mul
-		   #:fpoly-eql))
-
-
-
-
-
-
-
+		   #:fpoly-div
+		   #:fpoly-eql
+		   #:fpoly-mod
+		   #:fpoly-eval))
 

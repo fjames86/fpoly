@@ -12,6 +12,47 @@
   (/ (factorial n)
      (* (factorial k) (factorial (- n k)))))
 
+(defun drop-until (test list)
+  "Drop from a list until a predicate is true"
+  (labels ((rec (sub-list)
+			 (cond
+			   ((null sub-list) nil)
+			   ((funcall test (car sub-list))
+				sub-list)
+			   (t (rec (cdr sub-list))))))
+	(rec list)))
+
+(defun primes (n)
+  "Find all the primes up to n. Uses a <something> sieve to find them"
+  (do ((primes nil)
+	   (nums (loop for i from 3 to n by 2 collect i)))
+	  ((null nums) (nreverse primes))
+	(let ((num (pop nums)))
+	  (push num primes)
+	  (setf nums (remove-if (lambda (m)
+							  (zerop (mod m num)))
+							nums)))))
+
+(defun egcd (a b)
+  "Extended Greatest Comment Denominator"
+  (if (zerop b)
+	  (values 1 0)
+	  (multiple-value-bind (q r) (truncate a b)
+		(multiple-value-bind (x y) (egcd b r)
+		  (values y (- x (* q y)))))))
+
+(defun chinese-remainder (alist nlist)
+  "Chinese remainder given the set of congruences x = a_i (mod n_i). Solve these for x"
+  (let ((n (reduce #'* nlist))
+		(sum 0))
+	(mapc (lambda (ai ni)
+			(multiple-value-bind (p qi) (egcd ni (/ n ni))
+			  (declare (ignore p))
+			  (incf sum (* ai qi (/ n ni)))))
+		  alist
+		  nlist)
+	(poly-mod sum n)))
+
 ;;; ------- various utilities for manipulating powers and vars -----------
 
 (defun test-list (test source-list result-list)

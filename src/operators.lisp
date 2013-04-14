@@ -13,8 +13,17 @@
 (defgeneric fpoly-mul (p1 p2)
   (:documentation "Generic multiplication of polynomials"))
 
+(defgeneric fpoly-div (p1 p2)
+  (:documenation "Generic division of polynomials"))
+
 (defgeneric fpoly-eql (p1 p2)
   (:documentation "Generic equality of polynomials"))
+
+(defgeneric fpoly-mod (poly divisor)
+  (:documentation "Generic modulo"))
+
+(defgeneric fpoly-eval (poly bindings)
+  (:documentation "Evaluation of a polynomial"))
 
 ;;; -------------------- addition ---------------------
 
@@ -115,6 +124,21 @@
 			  (* coeff1 coeff2))))
 	p))
 
+;; ------------ division -----------
+
+(defmethod fpoly-div ((p1 number) (p2 number))
+  (/ p1 p2))
+
+(defmethod fpoly-div ((p1 fpoly) (p2 number))
+  (fpoly-mul p1 (/ p2)))
+
+(defmethod fpoly-div ((p1 number) (p2 fpoly))
+  (fpoly-mul p2 (/ p1)))
+
+(defmethod fpoly-div ((p1 fpoly) (p2 fpoly))
+  (error "*** fpoly-div: poly division not yet implemented"))
+
+
 ;;; --------------- equality testing -------------
 
 (defmethod fpoly-eql (p1 p2)
@@ -142,5 +166,44 @@
 			(setf e nil)))
 		e)))
 
-;;;; --------------
+;; -------------- modulo --------------
+
+(defmethod fpoly-mod ((poly number) (divisor integer))
+  "Polynomial modulo of numbers.
+Always choose the (absolute value) which is smaller of the two options"
+  (let ((x (mod poly divisor)))
+	(if (< (abs x) (abs (- x divisor)))
+		x
+		(- x divisor))))
+
+(defmethod fpoly-mod ((poly fpoly) (divisor integer))
+  (make-fpoly (fpoly-vars poly)
+			  (fpoly-degree poly)
+			  (map 'vector
+				   (lambda (n)
+					 (fpoly-mod n divisor))
+				   (fpoly-coeffs poly))))
+
+;; ------------- eval ----------------
+
+(defmethod fpoly-eval ((poly number))
+  poly)
+
+(defmethod fpoly-eval ((poly fpoly) bindings)
+  (let ((sum 0)
+		(vars (fpoly-vars poly)))
+	(docoeffs (poly coeff powers)
+	  (incf sum (* coeff
+				   (reduce #'* (mapcar (lambda (binding)
+										 (let ((x (car binding)))
+										   (expt (cdr binding)
+												 (test-list (lambda (var)
+															  (eq x var))
+															vars powers))))
+									   bindings)))))
+	sum))
+
+
+
+  
 
