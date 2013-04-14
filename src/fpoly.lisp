@@ -34,6 +34,7 @@
      (power-offset powers)))
 
 (defun gen-powers (n-vars degree)
+  "Generate a list of power-coordinates for the numbers of variables and degree"
   (cond
 	((zerop n-vars)
 	 nil)
@@ -49,6 +50,7 @@
 			   (gen-powers% (1- n-vars) (- degree n)))))))
 
 (defun gen-all-powers (n-vars degree)
+  "Generate a list of all power coordinates"
   (loop for n below (1+ degree) nconc (gen-powers n-vars n)))
 
 ;;;; ----------- class definitions -----------------
