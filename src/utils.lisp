@@ -1,6 +1,17 @@
 
 (in-package #:fpoly)
 
+(defun factorial (n)
+  (labels ((rec (n acc)
+			 (if (= n 0)
+				 acc
+				 (rec (1- n) (* acc n)))))
+    (rec n 1)))
+
+(defun ncr (n k)
+  (/ (factorial n)
+     (* (factorial k) (factorial (- n k)))))
+
 ;;; ------- various utilities for manipulating powers and vars -----------
 
 (defun test-list (test source-list result-list)

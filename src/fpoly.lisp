@@ -1,19 +1,6 @@
 
 (in-package #:fpoly)
 
-;;; ------------ utils --------------------
-
-(defun factorial (n)
-  (labels ((rec (n acc)
-			 (if (= n 0)
-				 acc
-				 (rec (1- n) (* acc n)))))
-    (rec n 1)))
-
-(defun ncr (n k)
-  (/ (factorial n)
-     (* (factorial k) (factorial (- n k)))))
-
 ;;; ------------- offset calculations -------
 
 (defun base-offset (num-vars degree)
@@ -84,6 +71,7 @@
 		   (symbol-macrolet ((,coeff-var (svref ,gc ,gi)))
 			 ,@body))))))
 
+;; class definition
 (defclass fpoly ()
   ((vars :reader fpoly-vars :initarg :vars)
    (degree :reader fpoly-degree :initarg :degree :initform 0)
