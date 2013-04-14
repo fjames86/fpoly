@@ -15,5 +15,9 @@
   ((:module
     :src 
     :components ((:file "package")
-				 (:file "fpoly")))))
+				 (:file "utils")
+				 (:file "fpoly" :depends-on ("utils"))
+				 (:file "operators" :depends-on ("utils" "fpoly"))))))
+
+
 

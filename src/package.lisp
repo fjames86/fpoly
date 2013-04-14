@@ -8,7 +8,11 @@
 		   #:fpoly-coeffs
 		   #:fpoly-coeff
 		   #:fpoly-add
-		   #:fpoly-sub))
+		   #:fpoly-sub
+		   #:fpoly-mul
+		   #:fpoly-eql))
+
+
 
 
 
