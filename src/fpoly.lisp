@@ -170,11 +170,25 @@ Returns zero if this is outside the array"
 
 ;;; -----------------------
 
-(defun merge-powers (bindings1 bindings2)
+(defun merge-powers (powers1 powers2)
+  "Add powers together"
+  (labels ((rec (powers1 powers2 acc)
+			 (cond
+			   ((null powers1)
+				(append acc powers2))
+			   ((null powers2)
+				(append acc powers1))
+			   (t (rec (cdr powers1)
+					   (cdr powers2)
+					   (append acc (list (+ (car powers1) (car powers2)))))))))
+	(rec powers1 powers2 nil)))
+				
+(defun merge-powers% (bindings1 bindings2)
+  "add all the powers together"
   (labels ((rec (bindings1 bindings2 acc)
 			 (cond
 			   ((null bindings1)
-				(append acc (list bindings2)))
+				(append acc bindings2))
 			   ((null bindings2)
 				(append acc bindings1))
 			   (t
@@ -232,6 +246,8 @@ Returns zero if this is outside the array"
 						   acc))
 					 (t nil))))))
 	(nreverse (rec source-vars source-powers nil))))
+
+
 
 (defun fpoly-add (p1 p2)
   "Add two numbers"
@@ -311,10 +327,15 @@ Returns zero if this is outside the array"
 						(* x p1))
 					  (fpoly-coeffs p2))))
     ((and (fpoly? p1) (fpoly? p2))
-     (let* ((degree (max (fpoly-degree p1) (fpoly-degree p2)))
+     (let* ((degree (+ (fpoly-degree p1) (fpoly-degree p2)))
 			(vars (merge-vars (fpoly-vars p1) (fpoly-vars p2)))
 			(p (make-fpoly vars degree)))
+	   (docoeffs (p1 coeff1 powers1 index1)
+		 (docoeffs (p2 coeff2 powers2 index2)
+		   (incf (apply #'fpoly-coeff p (merge-powers powers1 powers2))
+				 (* coeff1 coeff2))))
 	   p))))
+
 				
 
 
