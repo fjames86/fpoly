@@ -168,9 +168,10 @@ Returns zero if this is outside the array"
 				(fpoly-coeffs p)))
       (print-fpoly p stream)))
 
-;;; -----------------------
+;;; ------- various utilities for manipulating powers and vars -----------
 
 (defun test-list (test source-list result-list)
+  "Utility to find matching value in paired lists"
   (labels ((rec (source-list result-list)
 			 (if (or (null source-list) (null result-list))
 				 (values nil nil)
@@ -247,7 +248,17 @@ Returns zero if this is outside the array"
 					 (t nil))))))
 	(nreverse (rec source-vars source-powers nil))))
 
-;;;; generic functions
+(defun shuffle-power-order (source-vars source-powers target-vars)
+  "Switch power order around, e.g. from (x=1, y=2) -> (y=2, x=1)"
+  (mapcar (lambda (var)
+			(multiple-value-bind (power found) (test-list (lambda (x) (eq x var))
+														 source-vars source-powers)
+			  (if found
+				  power
+				  (error "*** shuffle-power-order: ~A not found in source vars" var))))
+		  target-vars))
+
+;;;; generic functions ------------------------------
 
 (defgeneric fpoly-add (p1 p2)
   (:documentation "Generic addition of polynomials"))
@@ -258,7 +269,10 @@ Returns zero if this is outside the array"
 (defgeneric fpoly-mul (p1 p2)
   (:documentation "Generic multiplication of polynomials"))
 
-;;; --------------------
+(defgeneric fpoly-eql (p1 p2)
+  (:documentation "Generic equality of polynomials"))
+
+;;; -------------------- addition ---------------------
 
 
 (defmethod fpoly-add (p1 p2)
@@ -290,7 +304,7 @@ Returns zero if this is outside the array"
 			 (setf coeff (+ c1 c2)))))
 	p))
 
-;; ------------------
+;; ------------------ subtraction ----------------
 
 
 (defmethod fpoly-sub ((p1 number) (p2 number))
@@ -322,7 +336,7 @@ Returns zero if this is outside the array"
 			 (setf coeff (- c1 c2)))))
 	p))
 
-;; -----------
+;; ----------- multiplication ----------------
 
 (defmethod fpoly-mul ((p1 number) (p2 number))
   (* p1 p2))
@@ -356,12 +370,35 @@ Returns zero if this is outside the array"
 			  (* coeff1 coeff2))))
 	p))
 
-;;; ---------------
+;;; --------------- equality testing -------------
 
+(defmethod fpoly-eql (p1 p2)
+  (= p1 p2))
 
+(defmethod fpoly-eql ((p1 fpoly) p2)
+  (and (= (svref (fpoly-coeffs p1) 0) p2)
+	   (every (lambda (n)
+				(= n 0))
+			  (subseq (fpoly-coeffs p1) 1))))
 
+(defmethod fpoly-eql (p1 (p2 fpoly))
+  (fpoly-eql p2 p1))
 
-				
+(defmethod fpoly-eql ((p1 fpoly) (p2 fpoly))
+  (if (and (= (fpoly-degree p1) (fpoly-degree p2))
+		   (not (set-exclusive-or (fpoly-vars p1) (fpoly-vars p2))))
+	  (let ((e t))
+		(docoeffs (p1 c1 powers1)
+		  (unless (= c1 (apply #'fpoly-coeff
+							   p2
+							   (shuffle-power-order (fpoly-vars p1)
+													powers1
+													(fpoly-vars p2))))
+			(setf e nil)))
+		e)))
+
+;;;; --------------
+
 
 
 		 
