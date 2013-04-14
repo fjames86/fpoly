@@ -3,6 +3,7 @@
 (defpackage #:fpoly
   (:use #:cl)
   (:export #:make-fpoly
+		   #:docoeffs
 		   #:fpoly-vars
 		   #:fpoly-degree
 		   #:fpoly-coeffs

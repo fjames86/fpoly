@@ -33,21 +33,20 @@
   (+ (base-offset (length powers) (1- (reduce #'+ powers)))
      (power-offset powers)))
 
-
 (defun gen-powers (n-vars degree)
   (cond
-    ((zerop n-vars)
-     nil)
-    ((= degree 0)
-     (list (make-list n-vars :initial-element 0)))
-    ((= n-vars 1)
-     (list (list degree)))
-    (t (do ((n 0 (1+ n))
+	((zerop n-vars)
+	 nil)
+	((zerop degree)
+	 (list (make-list n-vars :initial-element 0)))
+	((= n-vars 1)
+	 (list (list degree)))
+	(t (do ((n degree (1- n))
 			(terms nil))
-		   ((> n degree) (nreverse terms))
+		   ((< n 0) (nreverse terms))
 		 (mapc (lambda (p)
-				 (push (append p (list n)) terms))
-			   (gen-powers (1- n-vars) (- degree n)))))))
+				 (push (cons n p) terms))
+			   (gen-powers% (1- n-vars) (- degree n)))))))
 
 (defun gen-all-powers (n-vars degree)
   (loop for n below (1+ degree) nconc (gen-powers n-vars n)))
@@ -126,23 +125,23 @@ Returns zero if this is outside the array"
   (let ((vars (fpoly-vars p))
 		(printed nil))
     (docoeffs (p coeff powers index)
-			  (cond
-				((zerop coeff) nil)
-				(t
-				 (if printed
-					 (format t " + "))
-				 (if (> index 0)
-					 (unless (= coeff 1)
-					   (format stream "~A*" coeff))
-					 (format stream "~A" coeff))
-				 (mapc (lambda (x n)
-						 (cond
-						   ((= n 0) nil)
-						   ((= n 1)
-							(format stream "~A" x))
-						   (t (format stream "~A^~A" x n))))
-					   vars powers)
-				 (setf printed t))))
+	  (cond
+		((zerop coeff) nil)
+		(t
+		 (if printed
+			 (format t " + "))
+		 (if (> index 0)
+			 (unless (= coeff 1)
+			   (format stream "~A*" coeff))
+			 (format stream "~A" coeff))
+		 (mapc (lambda (x n)
+				 (cond
+				   ((= n 0) nil)
+				   ((= n 1)
+					(format stream "~A" x))
+				   (t (format stream "~A^~A" x n))))
+			   vars powers)
+		 (setf printed t))))
 	(if (not printed)
 		(print 0))))
 

@@ -109,8 +109,9 @@
 	  (docoeffs (p2 coeff2 powers2 index2)
 		(incf (apply #'fpoly-coeff
 					 p
-					 (merge-powers (fpoly-vars p1) powers1
-								   (fpoly-vars p2) powers2))
+					 (merge-powers-onto vars
+										(fpoly-vars p1) powers1
+										(fpoly-vars p2) powers2))
 			  (* coeff1 coeff2))))
 	p))
 
