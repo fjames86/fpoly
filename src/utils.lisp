@@ -40,7 +40,6 @@ arguments."
 			(row-major-aref array i)))
 	new-array))
 
-
 ;;; ---------------- some useful number routines -----------
 
 (defun primes (n)

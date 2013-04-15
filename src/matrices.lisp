@@ -193,7 +193,10 @@ using the fraction free Gaussian Eliminaton alg"
 	(list a b)))
 
 
+;; ----------------------
+
 (defun mat-list (mat)
+  "Convert a matrix to nested lists"
   (let ((n (array-dimension mat 0)))
 	(loop for i below n collect
 		 (loop for j below n collect
@@ -235,7 +238,7 @@ using the fraction free Gaussian Eliminaton alg"
 				 (mat-list mat)
 				 mat))))
 
-(defun poly-det (mat)
+(defun fpoly-det (mat)
   "Compute the determinant of a matrix of polys"
   (labels ((sub-det (terms)
 			 (let ((n (length terms)))
@@ -244,24 +247,20 @@ using the fraction free Gaussian Eliminaton alg"
 				  (car terms))
 				 ((= n 2)
 				  (destructuring-bind ((x11 x12) (x21 x22)) terms
-					(poly-sub (poly-mul x11 x22) (poly-mul x12 x21))))
+					(fpoly-sub (fpoly-mul x11 x22) (fpoly-mul x12 x21))))
 				 (t
 				  (do ((s 1 (- s))
 					   (i 0 (1+ i))
 					   (row (car terms) (cdr row))
 					   (sum 0
-							(poly-add sum
-									  (poly-mul s
-												(poly-mul (car row)
+							(fpoly-add sum
+									  (fpoly-mul s
+												(fpoly-mul (car row)
 														  (sub-det (sub-mat terms i 0)))))))
 					  ((null row) sum)))))))
 	(sub-det (if (arrayp mat)
 				 (mat-list mat)
 				 mat))))
 
-(defun solve-matrices (mats)
-  (mapcar (lambda (mat)
-			(ffge mat))
-		  mats))
 
 
