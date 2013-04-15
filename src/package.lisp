@@ -35,7 +35,9 @@
 		   #:ffge
 		   #:det
 		   #:fpoly-det
-		   ))
 
-		   
+		   ;; interpolate
+		   #:lagrange-interpolate
+		   #:lagrange-interpolate-matrix
+		   ))
 

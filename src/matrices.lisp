@@ -143,7 +143,7 @@ then evaluate each of these at some points"
 	 bindings)))
 
 (defun print-matrices (fname mats)
-  "Print out matrices"
+  "Print out a list of matrices. typically matrices of numbers only"
   (with-open-file (f fname :direction :output :if-exists :supersede)
 	(mapc (lambda (mat)
 			(doentries (mat entry)
@@ -152,7 +152,9 @@ then evaluate each of these at some points"
 		  mats))
   'ok)
 
-;; --------------
+;; -----------------------------------------------
+;; don't need these anymore, keep them in for the moment but don't export
+
 (defun make-mat-arrays (mat)
   "Convert a list format matrix into arrays"
   (let (a b)
@@ -179,7 +181,7 @@ then evaluate each of these at some points"
 		  ((= j n) (push (nreverse (cons (svref b i) row)) mat))
 		(push (aref a i j) row)))
 	(nreverse mat)))
-;; ------------------
+;; ------------------------------------------------------
 
 (defun ffge (mat vec)
   "Reduce a matrix of numbers to row-echelon form,

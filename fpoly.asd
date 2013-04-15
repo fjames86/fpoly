@@ -17,4 +17,10 @@
 				 (:file "utils" :depends-on ("package"))
 				 (:file "fpoly" :depends-on ("package" "utils"))
 				 (:file "operators" :depends-on ("package" "utils" "fpoly"))
-				 (:file "matrices" :depends-on ("package" "utils" "fpoly" "operators"))))))
+				 (:file "matrices" :depends-on ("package" "utils"
+												"fpoly" "operators"))
+				 (:file "interpolate" :depends-on ("package" "utils" "fpoly"
+												   "operators" "matrices"))))))
+
+
+
