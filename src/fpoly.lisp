@@ -47,7 +47,7 @@
 		   ((< n 0) (nreverse terms))
 		 (mapc (lambda (p)
 				 (push (cons n p) terms))
-			   (gen-powers% (1- n-vars) (- degree n)))))))
+			   (gen-powers (1- n-vars) (- degree n)))))))
 
 (defun gen-all-powers (n-vars degree)
   "Generate a list of all power coordinates"

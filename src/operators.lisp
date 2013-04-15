@@ -25,6 +25,9 @@
 (defgeneric fpoly-eval (poly bindings)
   (:documentation "Evaluation of a polynomial"))
 
+(defgeneric fpoly-copy (poly)
+  (:documentation "Copy a polynomial or number"))
+
 ;;; -------------------- addition ---------------------
 
 
@@ -189,21 +192,28 @@ Always choose the (absolute value) which is smaller of the two options"
 (defmethod fpoly-eval ((poly number) bindings)
   poly)
 
+(defun fpoly-eval-monomial (var-vals powers &optional (coeff 1))
+  (* coeff (reduce #'* (mapcar (lambda (val n)
+								 (expt val n))
+							   var-vals powers))))
+
 (defmethod fpoly-eval ((poly fpoly) bindings)
   (let ((sum 0)
-		(vars (fpoly-vars poly)))
+		(vars (fpoly-vars poly))
+		(vals (mapcar #'cdr bindings)))
 	(docoeffs (poly coeff powers)
-	  (incf sum (* coeff
-				   (reduce #'* (mapcar (lambda (binding)
-										 (let ((x (car binding)))
-										   (expt (cdr binding)
-												 (test-list (lambda (var)
-															  (eq x var))
-															vars powers))))
-									   bindings)))))
+	  (incf sum (fpoly-eval-monomial vals powers coeff)))
 	sum))
 
+;; -------------
+
+(defmethod fpoly-copy ((poly number))
+  poly)
+
+(defmethod fpoly-copy ((poly fpoly))
+  (make-fpoly (fpoly-vars poly)
+			  (fpoly-degree poly)
+			  (copy-seq (fpoly-coeffs poly))))
 
 
   
-
