@@ -52,6 +52,19 @@
 	  (setf entry (funcall function (mat-entry matrix col row))))	
 	new))
 
+(defmethod print-object ((mat matrix) stream)
+  (if *print-escape*
+      (print-unreadable-object (mat stream :type t)
+		(format stream ":SIZE ~A :ENTRIES ~A"
+				(mat-size mat)
+				(mat-entries mat)))	  
+	  (progn
+		(format stream "c r  entry~%")
+		(doentries (mat entry col row)
+		  (format stream "~A ~A: ~A~%" col row entry))
+		(format stream "~%"))))
+	  
+
 										  
 ;; ------ various useful functions ------------
 
