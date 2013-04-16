@@ -5,33 +5,33 @@
 
 (defun base-offset (num-vars degree)
   (if (< degree 0)
-      0
-      (ncr (+ num-vars degree)
+	  0
+	  (ncr (+ num-vars degree)
 		   degree)))
 
 (defun number-terms (num-vars degree)
   (if (= degree 0)
-      1
-      (- (base-offset num-vars degree)
+	  1
+	  (- (base-offset num-vars degree)
 		 (base-offset num-vars (1- degree)))))
 
 (defun power-offset (powers)
   (let ((degree (reduce #'+ powers))
 		(power (car powers)))
-    (cond
-      ((or (null (cdr powers))
+	(cond
+	  ((or (null (cdr powers))
 		   (= degree 0))
-       0)
-      ((= power 0)
-       (+ (number-terms (length powers) (1- degree))
+	   0)
+	  ((= power 0)
+	   (+ (number-terms (length powers) (1- degree))
 		  (power-offset (cdr powers))))
-      (t
-       (power-offset (cons (1- power)
+	  (t
+	   (power-offset (cons (1- power)
 						   (cdr powers)))))))
 
 (defun offset (powers)
   (+ (base-offset (length powers) (1- (reduce #'+ powers)))
-     (power-offset powers)))
+	 (power-offset powers)))
 
 (defun gen-powers (n-vars degree)
   "Generate a list of power-coordinates for the numbers of variables and degree"
@@ -51,7 +51,7 @@
 
 (defun gen-all-powers (n-vars degree)
   "Generate a list of all power coordinates"
-  (loop for n below (1+ degree) nconc (gen-powers n-vars n)))
+  (loop for n from 0 to degree nconc (gen-powers n-vars n)))
 
 ;;;; ----------- class definitions -----------------
 
