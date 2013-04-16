@@ -130,20 +130,23 @@ Returns zero if this is outside the array"
 	  (cond
 		((zerop coeff) nil)
 		(t
-		 (if printed
-			 (format t " + "))
-		 (if (> index 0)
-			 (unless (= coeff 1)
-			   (format stream "~A*" coeff))
-			 (format stream "~A" coeff))
-		 (mapc (lambda (x n)
-				 (cond
-				   ((= n 0) nil)
-				   ((= n 1)
-					(format stream "~A" x))
-				   (t (format stream "~A^~A" x n))))
-			   vars powers)
-		 (setf printed t))))
+		 (let ((sign (if (< coeff 0) -1 1)))
+		   (if printed
+			   (if (= sign -1)
+				   (format t " - ")
+				   (format t " + ")))
+		   (if (> index 0)
+			   (unless (= coeff 1)
+				 (format stream "~A*" (* sign coeff)))
+			   (format stream "~A" coeff))
+		   (mapc (lambda (x n)
+				   (cond
+					 ((= n 0) nil)
+					 ((= n 1)
+					  (format stream "~A" x))
+					 (t (format stream "~A^~A" x n))))
+				 vars powers)
+		   (setf printed t)))))
 	(if (not printed)
 		(print 0))))
 
