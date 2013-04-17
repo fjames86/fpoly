@@ -133,8 +133,8 @@ Returns zero if this is outside the array"
 		 (let ((sign (if (< coeff 0) -1 1)))
 		   (if printed
 			   (if (= sign -1)
-				   (format t " - ")
-				   (format t " + ")))
+				   (format stream " - ")
+				   (format stream " + ")))
 		   (if (> index 0)
 			   (unless (= coeff 1)
 				 (format stream "~A*" (* sign coeff)))
@@ -159,3 +159,20 @@ Returns zero if this is outside the array"
 				(fpoly-degree p)
 				(fpoly-coeffs p)))
       (print-fpoly p stream)))
+
+(defun parse-poly (stream)
+  "Parse a number or polynomial of format <vars> <degree> <coeffs>"
+  (let* ((str (read-line stream nil nil))
+		 (i (if str (parse-integer str :junk-allowed t) nil)))
+	(cond
+	  ((null str) nil)
+	  (i i)
+	  (t (with-input-from-string (s str)
+		   (let* ((vars (read s nil nil))
+				  (degree (read s nil nil))
+				  (coeffs (read s nil nil)))
+			 (if (and (listp vars)
+					  (numberp degree)
+					  (or (listp coeffs) (arrayp coeffs)))
+				 (make-fpoly vars degree coeffs)
+				 nil)))))))

@@ -27,7 +27,7 @@
 (defun (setf mat-entry) (val matrix i j)
   (let ((e (mat-entries matrix)))
 	(setf (aref e i j) val)
-	(set-mat-entries matrix e)
+	(set-mat-entries e matrix)
 	matrix))
 
 (defmacro doentries ((matrix entry-var &optional col row) &body body)
@@ -47,24 +47,35 @@
 
 
 (defun mapmatrix (function matrix)
+  "Map a function over the entries of a matrix, returning a new matrix"
   (let ((new (make-matrix (mat-size matrix))))
 	(doentries (new entry col row)
 	  (setf entry (funcall function (mat-entry matrix col row))))	
 	new))
 
 (defmethod print-object ((mat matrix) stream)
-  (if *print-escape*
-      (print-unreadable-object (mat stream :type t)
-		(format stream ":SIZE ~A :ENTRIES ~A"
-				(mat-size mat)
-				(mat-entries mat)))	  
-	  (progn
-		(format stream "c r  entry~%")
-		(doentries (mat entry col row)
-		  (format stream "~A ~A: ~A~%" col row entry))
-		(format stream "~%"))))
-	  
+  (cond
+	(*print-escape*
+	 (print-unreadable-object (mat stream :type t)
+	   (format stream ":SIZE ~A :ENTRIES ~A" (mat-size mat)
+			   (loop for i below (mat-size mat) collect
+					(loop for j below (mat-size mat) collect
+						 (mat-entry mat i j))))))
+	(t
+	 (format stream "~A~%" (mat-size mat))
+	 (doentries (mat entry)
+	   (format stream "~A~%" entry))
+	 (format stream "~%"))))
 
+(defun load-matrix (stream)
+  "Load a matrix. First line is the matrix size,
+each line afterwards contains the entry polynomial."
+  (let* ((size (parse-integer (read-line stream nil nil)))
+		 (mat (make-matrix size)))
+	(dotimes (row size)
+	  (dotimes (col size)
+		(setf (mat-entry mat col row) (parse-poly stream))))
+	mat))
 										  
 ;; ------ various useful functions ------------
 
