@@ -110,7 +110,7 @@ Returns zero if this is outside the array"
 		(svref (fpoly-coeffs p) o)
 		0)))
 
-;; setter for internal use only i.e. not exported
+;; setter 
 (defun (setf fpoly-coeff) (val p &rest powers)
   "Set the coefficient with the powers specified"
   (let ((o (offset powers))
@@ -160,7 +160,7 @@ Returns zero if this is outside the array"
 				(fpoly-coeffs p)))
       (print-fpoly p stream)))
 
-(defun parse-poly (stream)
+(defun parse-fpoly (stream)
   "Parse a number or polynomial of format <vars> <degree> <coeffs>"
   (let* ((str (read-line stream nil nil))
 		 (i (if str (parse-integer str :junk-allowed t) nil)))
@@ -176,3 +176,4 @@ Returns zero if this is outside the array"
 					  (or (listp coeffs) (arrayp coeffs)))
 				 (make-fpoly vars degree coeffs)
 				 nil)))))))
+

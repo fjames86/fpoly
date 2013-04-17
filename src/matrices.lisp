@@ -74,9 +74,9 @@ each line afterwards contains the entry polynomial."
 		 (mat (make-matrix size)))
 	(dotimes (row size)
 	  (dotimes (col size)
-		(setf (mat-entry mat col row) (parse-poly stream))))
+		(setf (mat-entry mat col row) (parse-fpoly stream))))
 	mat))
-										  
+
 ;; ------ various useful functions ------------
 
 (defun matrix-modulo (mat n)

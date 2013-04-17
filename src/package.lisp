@@ -10,7 +10,8 @@
 		   #:fpoly-degree
 		   #:fpoly-coeffs
 		   #:fpoly-coeff
-
+		   #:parse-fpoly
+		   
 		   ;; operators
 		   #:fpoly-add
 		   #:fpoly-sub
@@ -35,7 +36,8 @@
 		   #:ffge
 		   #:det
 		   #:fpoly-det
-
+		   #:load-matrix
+		   
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix
