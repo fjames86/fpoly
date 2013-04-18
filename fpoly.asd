@@ -14,13 +14,16 @@
   ((:module
     :src 
     :components ((:file "package")
-				 (:file "utils" :depends-on ("package"))
-				 (:file "fpoly" :depends-on ("package" "utils"))
-				 (:file "operators" :depends-on ("package" "utils" "fpoly"))
+				 (:file "condition")
+				 (:file "utils" :depends-on ("package" "condition"))
+				 (:file "fpoly" :depends-on ("package" "utils" "condition"))
+				 (:file "operators" :depends-on ("package" "utils" "fpoly" "condition"))
 				 (:file "matrices" :depends-on ("package" "utils"
-												"fpoly" "operators"))
+												"fpoly" "operators" "condition"))
 				 (:file "interpolate" :depends-on ("package" "utils" "fpoly"
-												   "operators" "matrices"))))))
+												   "operators" "matrices" "condition"))))))
+
+
 
 
 
