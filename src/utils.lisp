@@ -61,17 +61,22 @@ arguments."
 		(multiple-value-bind (x y) (egcd b r)
 		  (values y (- x (* q y)))))))
 
+;; need to check that all ni are coprime
 (defun chinese-remainder (alist nlist)
   "Chinese remainder given the set of congruences x = a_i (mod n_i). Solve these for x"
-  (let ((n (reduce #'* nlist))
-		(sum 0))
-	(mapc (lambda (ai ni)
-			(multiple-value-bind (p qi) (egcd ni (/ n ni))
-			  (declare (ignore p))
-			  (incf sum (* ai qi (/ n ni)))))
-		  alist
-		  nlist)
-	(fpoly-mod sum n)))
+  (let ((n (reduce #'* nlist)))
+	(labels ((rec (alist nlist acc)
+			   (if (or (null alist) (null nlist))
+				   acc
+				   (let* ((ai (car alist))
+						  (ni (car nlist))
+						  (np (/ n ni)))
+					 (multiple-value-bind (p qi) (egcd ni np)
+					   (declare (ignore p))
+					   (rec (cdr alist)
+							(cdr nlist)
+							(+ acc (* ai qi np))))))))
+	  (fpoly-mod (rec alist nlist 0) n))))
 
 ;;; ------- various utilities for manipulating powers and vars -----------
 
