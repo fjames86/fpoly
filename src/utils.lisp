@@ -71,7 +71,7 @@ arguments."
 			  (incf sum (* ai qi (/ n ni)))))
 		  alist
 		  nlist)
-	(poly-mod sum n)))
+	(fpoly-mod sum n)))
 
 ;;; ------- various utilities for manipulating powers and vars -----------
 

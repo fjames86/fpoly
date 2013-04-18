@@ -31,20 +31,18 @@
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"
-  (let* ((n (1+ degree))
-		 (m (form-lagrange-matrix points n))
+  (let* ((m (form-lagrange-matrix points degree))
 		 (monomials (form-monomials vars degree))
 		 (delta (det m))
 		 (mats (loop for i below (length m) collect
 					(loop for j below (length m) collect
 						 (if (= j i)
 							 monomials
-							 (nth j m)))))
-		 (deltas (mapcar #'fpoly-det mats)))				  
+							 (nth j m))))))
 	(reduce #'fpoly-add
 			(mapcar (lambda (d val)
 					  (fpoly-mul (fpoly-div d delta) val))
-					deltas
+					(mapcar #'fpoly-det mats)
 					vals))))
 
 (defun lagrange-interpolate-matrix (vars points mats degree)
