@@ -201,7 +201,7 @@ then evaluate each of these at some points"
 		  ((= j n) (push (nreverse (cons (svref b i) row)) mat))
 		(push (aref a i j) row)))
 	(nreverse mat)))
-;; ------------------------------------------------------
+;; ------------------- matrix reduction and inversion -----------------------------------
 
 (defun ffge (mat vec)
   "Reduce a matrix of numbers to row-echelon form,
@@ -245,7 +245,8 @@ using the fraction free Gaussian Eliminaton alg"
 	(labels ((add-rows (mat r1 r2 factor)
 			   (dotimes (i n)
 				 (setf (aref mat r1 i)
-					   (* factor (aref mat r2 i))))
+					   (+ (aref mat r1 i)
+						  (* factor (aref mat r2 i)))))
 			   mat)
 			 (scale-row (mat r factor)
 			   (dotimes (i n)
@@ -256,23 +257,19 @@ using the fraction free Gaussian Eliminaton alg"
 			   (dotimes (i n)
 				 (rotatef (aref mat r1 i) (aref mat r2 i)))
 			   mat))
-	  (do ((row 0 (1+ row)))
-		  ((= row n))
-		(do ((col (1+ row) (1+ col)))
-			((= col n))
+	  (dotimes (row n)
+		(dotimes (col n)
 		  (cond
 			((> (abs (aref a col row)) (abs (aref a row row)))
 			 (swap-row a row col)
 			 (swap-row b row col))))
 		(let ((s (aref a row row)))
 		  (cond
-			((zerop s)
-			 (error "Non-invertible matrix."))
+			((zerop s) (error "Non-invertible matrix."))
 			(t
 			 (scale-row a row (/ s))
 			 (scale-row b row (/ s)))))
-		(do ((i 0 (1+ i)))
-			((= i n))
+		(dotimes (i n)
 		  (unless (= i row)
 			(let ((s (- (aref a i row))))
 			  (add-rows a i row s)
