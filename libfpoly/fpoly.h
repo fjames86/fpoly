@@ -7,6 +7,7 @@
 #include <math.h>
 
 #include "symbol.h"
+#include "utils.h"
 
 /* list of variables */
 struct var_t {
@@ -26,7 +27,11 @@ struct fpoly_t {
 	int *coeffs;
 };
 
+struct var_t *make_var (symbol *x);
+void free_vars (struct var_t *vars);
+
 struct fpoly_t *make_fpoly (struct var_t *vars, int degree);
 void free_fpoly (struct fpoly_t *p);
+
 
 #endif /* fpoly.h */
