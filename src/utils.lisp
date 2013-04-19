@@ -1,7 +1,15 @@
 
+
+;;;;
+;;;; A set of utilities that form part of the fpoly package
+;;;; Frank James 2013
+;;;;
+
 (in-package #:fpoly)
 
+;; ----------------------------------------
 
+;; factorials using cached values up to 500 (should easily be big enough)
 (let* ((max-fac 500)
 	   (table (make-array max-fac)))
   (labels ((gen-fac (n)
@@ -20,9 +28,11 @@
 		  (gen-fac n)))))
 
 (defun ncr (n k)
+  "nCr combination function"
   (/ (factorial n)
      (* (factorial k) (factorial (- n k)))))
 
+;; drop from the front of a list until a predicate returns true
 (defun drop-until (test list)
   "Drop from a list until a predicate is true"
   (labels ((rec (sub-list)
@@ -33,6 +43,7 @@
 			   (t (rec (cdr sub-list))))))
 	(rec list)))
 
+;; copy a 2d array (matrix)
 (defun copy-array (array &key
 				   (element-type (array-element-type array))
 				   (fill-pointer (and (array-has-fill-pointer-p array)
@@ -52,6 +63,8 @@ arguments."
 	new-array))
 
 ;;; ---------------- some useful number routines -----------
+
+;; several prime number related functions follow
 
 (defun primes (n)
   "Find all the primes up to n. Uses a <something> sieve to find them"
@@ -112,7 +125,7 @@ arguments."
 		(facs2 (prime-factors n2)))
 	(duplicates-p (append facs1 facs2))))
 
-;; ----------------------
+;; ---------------------- some number theory related functions --------------
 
 (defun egcd (a b)
   "Extended Greatest Comment Denominator"

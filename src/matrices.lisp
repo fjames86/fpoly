@@ -77,6 +77,15 @@ each line afterwards contains the entry polynomial."
 		(setf (mat-entry mat col row) (parse-fpoly stream))))
 	mat))
 
+(defun load-vector (stream)
+  "Load a vector of polynomials, one on each line"
+  (let* ((size (parse-integer (read-line stream nil nil)))
+		 (vec (make-array size)))
+	(dotimes (i size)
+	  (setf (svref vec i) (parse-fpoly stream)))
+	vec))
+
+		 
 ;; ------ various useful functions ------------
 
 (defun matrix-modulo (mat n)
@@ -218,6 +227,57 @@ using the fraction free Gaussian Eliminaton alg"
 			 (setf (aref a j i) 0))))
 	(list a b)))
 
+(defun make-identity (n)
+  "Make an identity matrix"
+  (let ((mat (make-array (list n n) :initial-element 0)))
+	(dotimes (i n)
+	  (setf (aref mat i i) 1))
+	mat))
+
+(defun invert-mat (matrix)
+  "Invert a matrix of numbers using gauss jordan elimination"
+  (unless (= (array-dimension matrix 0) (array-dimension matrix 1))
+	(error "Not a square matrix."))
+
+  (let* ((n (array-dimension matrix 0))
+		 (a (copy-array matrix))
+		 (b (make-identity n)))
+	(labels ((add-rows (mat r1 r2 factor)
+			   (dotimes (i n)
+				 (setf (aref mat r1 i)
+					   (* factor (aref mat r2 i))))
+			   mat)
+			 (scale-row (mat r factor)
+			   (dotimes (i n)
+				 (setf (aref mat r i)
+					   (* factor (aref mat r i))))
+			   mat)
+			 (swap-row (mat r1 r2)
+			   (dotimes (i n)
+				 (rotatef (aref mat r1 i) (aref mat r2 i)))
+			   mat))
+	  (do ((row 0 (1+ row)))
+		  ((= row n))
+		(do ((col (1+ row) (1+ col)))
+			((= col n))
+		  (cond
+			((> (abs (aref a col row)) (abs (aref a row row)))
+			 (swap-row a row col)
+			 (swap-row b row col))))
+		(let ((s (aref a row row)))
+		  (cond
+			((zerop s)
+			 (error "Non-invertible matrix."))
+			(t
+			 (scale-row a row (/ s))
+			 (scale-row b row (/ s)))))
+		(do ((i 0 (1+ i)))
+			((= i n))
+		  (unless (= i row)
+			(let ((s (- (aref a i row))))
+			  (add-rows a i row s)
+			  (add-rows b i row s)))))
+	  b)))
 
 ;; ----------------------
 

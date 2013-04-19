@@ -37,6 +37,7 @@
 		   #:det
 		   #:fpoly-det
 		   #:load-matrix
+		   #:load-vector
 		   
 		   ;; interpolate
 		   #:lagrange-interpolate
