@@ -17,7 +17,7 @@ struct var_t {
 
 struct fpoly_t {
 	/* list of variables */
-	var_t *vars;
+	struct var_t *vars;
 	int nvars;
 
 	/* array of coefficients */
@@ -26,6 +26,7 @@ struct fpoly_t {
 	int *coeffs;
 };
 
-
+struct fpoly_t *make_fpoly (struct var_t *vars, int degree);
+void free_fpoly (struct fpoly_t *p);
 
 #endif /* fpoly.h */
