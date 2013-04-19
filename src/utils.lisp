@@ -1,12 +1,23 @@
 
 (in-package #:fpoly)
 
-(defun factorial (n)
-  (labels ((rec (n acc)
-			 (if (= n 0)
-				 acc
-				 (rec (1- n) (* acc n)))))
-    (rec n 1)))
+
+(let* ((max-fac 500)
+	   (table (make-array max-fac)))
+  (labels ((gen-fac (n)
+			 (labels ((rec (n acc)
+						(if (= n 0)
+							acc
+							(rec (1- n) (* acc n)))))
+			   (rec n 1))))
+	(dotimes (i max-fac)
+	  (setf (svref table i) (gen-fac i)))
+	
+	(defun factorial (n)
+	  "Factorial using cached values"
+	  (if (< n max-fac)
+		  (svref table n)
+		  (gen-fac n)))))
 
 (defun ncr (n k)
   (/ (factorial n)
@@ -52,6 +63,56 @@ arguments."
 	  (setf nums (remove-if (lambda (m)
 							  (zerop (mod m num)))
 							nums)))))
+
+(let* ((prime-list (cons 2 (primes 1000)))
+	   (max-n (reduce #'* prime-list)))
+  (defun prime-factors (n)
+	"Get a list of prime factors for the number"
+	(labels ((rec (pms factors n)
+			   (cond
+				 ((= n 1) factors)
+				 ((or (null pms)
+					  (> (car pms) n))
+				  (cons n factors))
+				 (t (let ((p (car pms)))
+					  (multiple-value-bind (q r) (truncate n p)
+						(if (zerop r)
+							(rec pms
+								 (cons p factors)
+								 q)
+							(rec (cdr pms)
+								 factors
+								 n))))))))
+	  (if (<= n max-n)
+		  (rec prime-list nil n)
+		  (error "Trying to split ~A, largest number supported is ~A~%"
+				 n max-n)))))
+
+(defun prime? (n)
+  "Predicate for a prime number"
+  (let ((factors (prime-factors n)))
+	(and (= (length factors) 1)
+		 (= (car factors) n))))
+ 
+(defun duplicates-p (list)
+  "Returns true if the list contains duplicates"
+  (labels ((rec (l1 l2)
+			 (cond
+			   ((and (null l1) (null l2))
+				t)
+			   ((or (and (null l1) l2)
+					(and l1 (null l2)))
+				nil)
+			   (t (rec (cdr l1) (cdr l2))))))
+	(rec list (remove-duplicates list))))
+
+(defun coprime? (n1 n2)
+  "Returns true if two numbers do not share any prime factors"
+  (let ((facs1 (prime-factors n1))
+		(facs2 (prime-factors n2)))
+	(duplicates-p (append facs1 facs2))))
+
+;; ----------------------
 
 (defun egcd (a b)
   "Extended Greatest Comment Denominator"
