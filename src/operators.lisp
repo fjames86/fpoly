@@ -28,6 +28,9 @@
 (defgeneric fpoly-copy (poly)
   (:documentation "Copy a polynomial or number"))
 
+(defgeneric fpoly-substitute (poly var val)
+  (:documentation "Form a new polynomial with the variable substituted for a value"))
+
 ;;; -------------------- addition ---------------------
 
 
@@ -216,4 +219,18 @@ Always choose the (absolute value) which is smaller of the two options"
 			  (copy-seq (fpoly-coeffs poly))))
 
 
-  
+;; ----------------------
+
+(defmethod fpoly-substitute ((poly fpoly) (var symbol) (val number))
+  (let ((p (make-fpoly (remove var (fpoly-vars poly))
+					   (fpoly-degree poly))))
+	p))
+
+(defmethod fpoly-substitute ((poly fpoly) (var symbol) (val fpoly))
+  (let ((p (make-fpoly (remove var (fpoly-vars poly))
+					   (fpoly-degree poly))))
+	p))
+
+
+	  
+				  

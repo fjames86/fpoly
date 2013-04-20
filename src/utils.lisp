@@ -20,7 +20,7 @@
 			   (rec n 1))))
 	(dotimes (i max-fac)
 	  (setf (svref table i) (gen-fac i)))
-	
+ 	
 	(defun factorial (n)
 	  "Factorial using cached values"
 	  (if (< n max-fac)

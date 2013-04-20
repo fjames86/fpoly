@@ -81,21 +81,23 @@
    (powers :reader fpoly-powers :initarg :powers)))
 
 (defun make-fpoly (vars degree &optional coeffs)  
-  "Make an fpoly object"
+  "Make an fpoly object."
   (let ((size (base-offset (length vars) degree)))
-    (make-instance 'fpoly 
-				   :vars vars
-				   :degree degree
-				   :size size
-				   :powers (gen-all-powers (length vars) degree)
-				   :coeffs (cond
-							 ((null coeffs) 
-							  (make-array size :initial-element 0))
-							 ((arrayp coeffs)
-							  coeffs)			     
-							 ((listp coeffs)
-							  (make-array size :initial-contents coeffs))
-							 (t (make-array size :initial-element 0))))))
+	(if (= size 1)
+		(if coeffs (elt coeffs 0) 0)
+		(make-instance 'fpoly 
+					   :vars vars
+					   :degree degree
+					   :size size
+					   :powers (gen-all-powers (length vars) degree)
+					   :coeffs (cond
+								 ((null coeffs) 
+								  (make-array size :initial-element 0))
+								 ((arrayp coeffs)
+								  coeffs)			     
+								 ((listp coeffs)
+								  (make-array size :initial-contents coeffs))
+								 (t (make-array size :initial-element 0)))))))
 
 (defun fpoly? (p) 
   "Predicate for fpoly"
