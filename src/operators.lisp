@@ -31,6 +31,9 @@
 (defgeneric fpoly-substitute (poly var val)
   (:documentation "Form a new polynomial with the variable substituted for a value"))
 
+(defgeneric fpoly-simplify (poly)
+  (:documentation "Reduce the degree if higher coefficients are zero"))
+
 ;;; -------------------- addition ---------------------
 
 
@@ -232,5 +235,35 @@ Always choose the (absolute value) which is smaller of the two options"
 	p))
 
 
+;; -------------------------
+
+(defun highest-degree (poly)
+  "Find the highest degree of the non-zero coefficients"
+  (let ((degree 0))
+	(docoeffs (poly coeff powers)
+	  (unless (zerop coeff)
+		(let ((d (reduce #'+ powers)))
+		  (if (> d degree)
+			  (setf degree d)))))
+	degree))
+
+(defun involved-vars (poly)
+  "Find the variables with non-zero coefficients and non-zero powers"
+  (let ((vars nil)
+		(pvars (fpoly-vars poly)))
+	(docoeffs (poly coeff powers)
+	  (unless (zerop coeff)
+		(mapc (lambda (var power)
+				(if (> power 0)
+					(pushnew var vars)))
+			  pvars powers)))
+	vars))
+
+(defmethod fpoly-simplify ((poly fpoly))
+  (let ((p (make-fpoly (involved-vars poly)
+					   (highest-degree poly))))
+	p))
+
 	  
-				  
+											  
+
