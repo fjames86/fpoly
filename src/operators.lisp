@@ -225,9 +225,16 @@ Always choose the (absolute value) which is smaller of the two options"
 ;; ----------------------
 
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val number))
-  (let ((p (make-fpoly (remove var (fpoly-vars poly))
-					   (fpoly-degree poly))))
+  "Substitute a variable for a number"
+  (let* ((vars (fpoly-vars poly))
+		 (var-n (position var vars))
+		 (p (make-fpoly (remove var vars) (fpoly-degree poly))))
+	(docoeffs (poly coeff powers)
+	  (let ((p-powers (remove-nth powers var-n))
+			(var-val (expt val (nth var-n powers))))
+		(incf (apply #'fpoly-coeff p p-powers) (* coeff var-val))))
 	p))
+	  
 
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val fpoly))
   (let ((p (make-fpoly (remove var (fpoly-vars poly))

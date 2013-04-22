@@ -134,7 +134,7 @@ Returns zero if this is outside the array"
   "Set the coefficient with the powers specified"
   (let ((o (offset powers))
 		(c (fpoly-coeffs p)))        
-    (cond      
+    (cond
       ((< o (fpoly-size p))
        (setf (svref c o) val)
        (set-fpoly-coeffs c p))

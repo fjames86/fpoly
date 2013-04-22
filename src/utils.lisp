@@ -43,6 +43,18 @@
 			   (t (rec (cdr sub-list))))))
 	(rec list)))
 
+(defun remove-nth (list n)
+  (labels ((rec (list i acc)
+			 (cond
+			   ((null list) acc)
+			   ((= i n)
+				(append acc (cdr list)))
+			   (t
+				 (rec (cdr list)
+					  (1+ i)
+					  (append acc (list (car list))))))))
+	(rec list 0 nil)))
+
 ;; copy a 2d array (matrix)
 (defun copy-array (array &key
 				   (element-type (array-element-type array))
