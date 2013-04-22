@@ -51,7 +51,7 @@
 					  ((< n 0) (nreverse terms))
 					(mapc (lambda (p)
 							(push (cons n p) terms))
-						  (gen-powers (1- n-vars) (- degree n))))))))
+						  (gen-power-list (1- n-vars) (- degree n))))))))
 	(loop for nvars from 1 to max-nvars do
 		 (loop for degree from 0 to max-degree do
 			  (setf (aref powers-table (1- nvars) degree)
