@@ -5,33 +5,38 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <gmp.h>
 
 #include "symbol.h"
 #include "utils.h"
 
-/* list of variables */
-struct var_t {
-	symbol *var;
-	struct var_t *next;
-};
+#define FPOLY_MAX_POOL 10
 
+#define MAXVARS   5
+#define MAXDEGREE 20
+
+#define MAXCOEFFS 53130 /* lisp: (base-offset 5 20) = 53130 */
 
 struct fpoly_t {
 	/* list of variables */
-	struct var_t *vars;
+	symbol *vars;
 	int nvars;
 
 	/* array of coefficients */
 	int degree;
 	int size; 
-	int *coeffs;
+	mpz_t *coeffs;
 };
 
-struct var_t *make_var (symbol *x);
-void free_vars (struct var_t *vars);
+/* pool of pre-allocated fpoly_t structs */
+struct fpoly_t *fpoly_pool;
 
-struct fpoly_t *make_fpoly (struct var_t *vars, int degree);
-void free_fpoly (struct fpoly_t *p);
+/* allocate the pool and initialise them */
+void fpoly_open();
+void fpoly_close();
+void fpoly_init(struct fpoly_t *p, symbol *vars, int nvars, int degree);
 
+/* get a poly struct from the pool and initialise it */
+struct fpoly_t *make_fpoly(symbol *vars, int nvars, int degree);
 
 #endif /* fpoly.h */

@@ -1,50 +1,50 @@
 
 #include "fpoly.h"
 
-struct var_t *make_var (symbol *x) {
-	struct var_t *var;
-
-	var = (struct var_t *) malloc(sizeof(struct var_t));
-	var->var = x;
-	var->next = NULL;
-}
-
-void free_vars (struct var_t *vars) {
-    if (vars->next) {
-		free_vars(var->next);
-	}
-	free(vars);
-}
-
-struct fpoly_t *make_fpoly (struct var_t *vars, int degree) {
-	struct fpoly_t *p;
-	struct var_t *v;
+void fpoly_open() {
 	int i;
+	struct fpoly_t *p;
 	
-	p = (struct fpoly_t *) malloc (sizeof (struct fpoly_t));
-	p->vars = vars;
-	p->nvars = 0;
+	fpoly_pool = make_stack(FPOLY_MAX_POOL);
+	for(i=0; i < FPOLY_MAX_POOL; i++) {
+		p = new_fpoly();
+		stack_push(&fpoly_pool, p);
+	}	
+}
 
-	v = p->vars;
-	while(v) {
-		p->nvars++;
+void fpoly_close() {
+	int i;
+
+	for(i=0; i < fpoly_pool->i; i++) {
+		delete_fpoly(stack_pop(fpoly_pool));
 	}
+	
+	free_stack(fpoly_pool);
+}
 
+void fpoly_init(struct fpoly_t *p, symbol *vars, int nvars, int degree) {
+	int i;
+
+	p->nvars = nvars;
+	p->vars = (symbol *)malloc(sizeof(symbol)*nvars);
+	for(i=0; i < nvars; i++) {
+		p->vars[i] = vars[i];
+	}
+   
 	p->degree = degree;
-	p->size = ncr(degree + p->nvars, degree);
-	p->coeffs = (int *) malloc (sizeof(int)*p->size);
-
+	p->size = base_offset(nvars, degree);
+	p->coeffs = (mpz_t *)malloc(sizeof(mpz_t)*p->size);
 	for(i=0; i < p->size; i++) {
-		p->coeffs[i] = 0;
+		mpz_init(&p->coeffs[i]);
 	}
+	
+}
 
-	return p;
+struct fpoly_t *make_fpoly() {
+
 }
 
 void free_fpoly (struct fpoly_t *p) {
-	free_vars (p->vars);
-	free (p->coeffs);
-	free(p);
+
 }
 
-		
