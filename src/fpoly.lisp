@@ -58,10 +58,12 @@
 					(gen-power-list nvars degree))))
 
 	(defun gen-powers (nvars degree)
-	  (if (and (<= nvars max-nvars)
-			   (<= degree max-degree))
-		  (aref powers-table (1- nvars) degree)
-		  (gen-power-list nvars degree)))))
+	  (cond
+		((<= nvars 0) nil)
+	   ((and (<= nvars max-nvars)
+			 (<= degree max-degree))
+		(aref powers-table (1- nvars) degree))
+	   (t (gen-power-list nvars degree))))))
 
 (defun gen-all-powers (n-vars degree)
   "Generate a list of all power coordinates"
@@ -98,21 +100,21 @@
 (defun make-fpoly (vars degree &optional coeffs)  
   "Make an fpoly object."
   (let ((size (base-offset (length vars) degree)))
-	(if (= size 1)
-		(if coeffs (elt coeffs 0) 0)
-		(make-instance 'fpoly 
-					   :vars vars
-					   :degree degree
-					   :size size
-					   :powers (gen-all-powers (length vars) degree)
-					   :coeffs (cond
-								 ((null coeffs) 
-								  (make-array size :initial-element 0))
-								 ((arrayp coeffs)
-								  coeffs)			     
-								 ((listp coeffs)
-								  (make-array size :initial-contents coeffs))
-								 (t (make-array size :initial-element 0)))))))
+	(make-instance 'fpoly 
+				   :vars vars
+				   :degree (if (= size 1) 0 degree)
+				   :size size
+				   :powers (if (= size 1)
+							   (gen-all-powers 1 0)
+							   (gen-all-powers (length vars) degree))
+				   :coeffs (cond
+							 ((null coeffs) 
+							  (make-array size :initial-element 0))
+							 ((arrayp coeffs)
+							  coeffs)			     
+							 ((listp coeffs)
+							  (make-array size :initial-contents coeffs))
+							 (t (make-array size :initial-element 0))))))
 
 (defun fpoly? (p) 
   "Predicate for fpoly"
