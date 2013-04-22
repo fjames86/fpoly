@@ -33,25 +33,40 @@
   (+ (base-offset (length powers) (1- (reduce #'+ powers)))
 	 (power-offset powers)))
 
-(defun gen-powers (n-vars degree)
-  "Generate a list of power-coordinates for the numbers of variables and degree"
-  (cond
-	((zerop n-vars)
-	 nil)
-	((zerop degree)
-	 (list (make-list n-vars :initial-element 0)))
-	((= n-vars 1)
-	 (list (list degree)))
-	(t (do ((n degree (1- n))
-			(terms nil))
-		   ((< n 0) (nreverse terms))
-		 (mapc (lambda (p)
-				 (push (cons n p) terms))
-			   (gen-powers (1- n-vars) (- degree n)))))))
+;; precomputed powers list
+
+(let* ((max-nvars 5)
+	   (max-degree 20)
+	   (powers-table (make-array (list max-nvars (1+ max-degree)) :initial-element nil)))
+  (labels ((gen-power-list (n-vars degree)
+			 (cond
+			   ((zerop n-vars)
+				nil)
+			   ((zerop degree)
+				(list (make-list n-vars :initial-element 0)))
+			   ((= n-vars 1)
+				(list (list degree)))
+			   (t (do ((n degree (1- n))
+					   (terms nil))
+					  ((< n 0) (nreverse terms))
+					(mapc (lambda (p)
+							(push (cons n p) terms))
+						  (gen-powers (1- n-vars) (- degree n))))))))
+	(loop for nvars from 1 to max-nvars do
+		 (loop for degree from 0 to max-degree do
+			  (setf (aref powers-table (1- nvars) degree)
+					(gen-power-list nvars degree))))
+
+	(defun gen-powers (nvars degree)
+	  (if (and (<= nvars max-nvars)
+			   (<= degree max-degree))
+		  (aref powers-table (1- nvars) degree)
+		  (gen-power-list nvars degree)))))
 
 (defun gen-all-powers (n-vars degree)
   "Generate a list of all power coordinates"
-  (loop for n from 0 to degree nconc (gen-powers n-vars n)))
+  (loop for n from 0 to degree append (gen-powers n-vars n)))
+
 
 ;;;; ----------- class definitions -----------------
 
