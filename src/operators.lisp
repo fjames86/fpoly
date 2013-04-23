@@ -168,16 +168,16 @@
 
 ;;; --------------- equality testing -------------
 
-(defmethod fpoly-eql (p1 p2)
+(defmethod fpoly-eql ((p1 number) (p2 number))
   (= p1 p2))
 
-(defmethod fpoly-eql ((p1 fpoly) p2)
+(defmethod fpoly-eql ((p1 fpoly) (p2 number))
   (and (= (svref (fpoly-coeffs p1) 0) p2)
 	   (every (lambda (n)
 				(= n 0))
 			  (subseq (fpoly-coeffs p1) 1))))
 
-(defmethod fpoly-eql (p1 (p2 fpoly))
+(defmethod fpoly-eql ((p1 number) (p2 fpoly))
   (fpoly-eql p2 p1))
 
 (defmethod fpoly-eql ((p1 fpoly) (p2 fpoly))
