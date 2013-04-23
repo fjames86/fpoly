@@ -150,14 +150,22 @@ Returns zero if this is outside the array"
 		((zerop coeff) nil)
 		(t
 		 (let ((sign (if (< coeff 0) -1 1)))
+		   ;; print the +/- sign but only if adding a new term 
 		   (if printed
 			   (if (= sign -1)
 				   (format stream " - ")
 				   (format stream " + ")))
-		   (if (> index 0)
-			   (unless (= coeff 1)
-				 (format stream "~A*" (* sign coeff)))
-			   (format stream "~A" coeff))
+		   ;; print the coefficient number unless it's either the first term or 1
+		   (cond
+			 ((= index 0)
+			  (format stream "~A" coeff))
+			 ((= coeff -1)
+			  (unless printed
+				(format stream "-")))
+			 ((= coeff 1)
+			  nil)
+			 (t (format stream "~A*" coeff)))
+		   ;; print the variables
 		   (mapc (lambda (x n)
 				   (cond
 					 ((= n 0) nil)

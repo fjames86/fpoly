@@ -77,9 +77,8 @@ arguments."
 ;;; ---------------- some useful number routines -----------
 
 ;; several prime number related functions follow
-
 (defun primes (n)
-  "Find all the primes up to n. Uses a <something> sieve to find them"
+  "Find all the primes from 3 up to n. Uses Eratosthenes' sieve to find them"
   (do ((primes nil)
 	   (nums (loop for i from 3 to n by 2 collect i)))
 	  ((null nums) (nreverse primes))
@@ -124,10 +123,10 @@ arguments."
   (labels ((rec (l1 l2)
 			 (cond
 			   ((and (null l1) (null l2))
-				t)
+				nil)
 			   ((or (and (null l1) l2)
 					(and l1 (null l2)))
-				nil)
+				t)
 			   (t (rec (cdr l1) (cdr l2))))))
 	(rec list (remove-duplicates list))))
 
@@ -135,7 +134,7 @@ arguments."
   "Returns true if two numbers do not share any prime factors"
   (let ((facs1 (prime-factors n1))
 		(facs2 (prime-factors n2)))
-	(duplicates-p (append facs1 facs2))))
+	(not (duplicates-p (append facs1 facs2)))))
 
 ;; ---------------------- some number theory related functions --------------
 
