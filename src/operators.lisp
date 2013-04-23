@@ -235,6 +235,7 @@ Always choose the (absolute value) which is smaller of the two options"
   poly)
 
 (defun fpoly-eval-monomial (var-vals powers &optional (coeff 1))
+  "Evaluate a term coeff*X^n*Y^m... for various variables X,Y... and powers"
   (fpoly-mul coeff (reduce #'fpoly-mul
 						   (mapcar (lambda (val n)
 									 (cond
