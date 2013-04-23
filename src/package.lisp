@@ -5,6 +5,7 @@
   (:export
            ;; fpoly
            #:make-fpoly
+		   #:make-monomial
 		   #:docoeffs
 		   #:fpoly-vars
 		   #:fpoly-degree
@@ -14,14 +15,18 @@
 		   
 		   ;; operators
 		   #:fpoly-add
+		   #:fpoly-incf
 		   #:fpoly-sub
 		   #:fpoly-mul
 		   #:fpoly-div
 		   #:fpoly-eql
 		   #:fpoly-mod
+		   #:fpoly-expt
 		   #:fpoly-eval
 		   #:fpoly-copy
-
+		   #:fpoly-substitute
+		   #:fpoly-simplify
+		   
 		   ;; matrices
 		   #:make-matrix
 		   #:mat-entry
