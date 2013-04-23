@@ -22,6 +22,9 @@
 (defgeneric fpoly-mod (poly divisor)
   (:documentation "Generic modulo"))
 
+(defgeneric fpoly-expt (poly n)
+  (:documentation "Generic expt function"))
+
 (defgeneric fpoly-eval (poly bindings)
   (:documentation "Evaluation of a polynomial"))
 
@@ -65,6 +68,13 @@
 				 (c2 (if p2-powers (apply #'fpoly-coeff p2 p2-powers) 0)))
 			 (setf coeff (+ c1 c2)))))
 	p))
+
+(defmacro fpoly-incf (place &optional (amount 1))
+  (let ((gnew (gensym "NEW"))
+		(gamount (gensym "AMOUNT")))
+	`(let* ((,gamount ,amount)
+			(,gnew (fpoly-add ,place ,gamount)))
+	   (setf ,place ,gnew))))
 
 ;; ------------------ subtraction ----------------
 
@@ -193,22 +203,43 @@ Always choose the (absolute value) which is smaller of the two options"
 					 (fpoly-mod n divisor))
 				   (fpoly-coeffs poly))))
 
+;; ------------------ expt -------------------------
+
+(defmethod fpoly-expt ((poly number) (n integer))
+  (expt poly n))
+
+(defun fpoly-sq (p)
+  (fpoly-mul p p))
+
+(defmethod fpoly-expt ((poly fpoly) (n integer))
+  (cond
+	((zerop n) 1)
+	((= n 1) poly)
+	(t
+	 (if (evenp n)
+		 (fpoly-sq (fpoly-expt poly (/ n 2)))
+		 (fpoly-mul (fpoly-expt poly (/ (1- n) 2))
+					(fpoly-expt poly (1+ (/ (1- n) 2))))))))
+   
 ;; ------------- eval ----------------
 
 (defmethod fpoly-eval ((poly number) bindings)
   poly)
 
 (defun fpoly-eval-monomial (var-vals powers &optional (coeff 1))
-  (* coeff (reduce #'* (mapcar (lambda (val n)
-								 (expt val n))
-							   var-vals powers))))
+  (fpoly-mul coeff (reduce #'fpoly-mul
+						   (mapcar (lambda (val n)
+									 (cond
+									   ((symbolp val)
+										(make-monomial (list val) (list n)))
+									   (t (fpoly-expt val n))))
+								   var-vals powers))))
 
 (defmethod fpoly-eval ((poly fpoly) bindings)
   (let ((sum 0)
-		(vars (fpoly-vars poly))
 		(vals (mapcar #'cdr bindings)))
 	(docoeffs (poly coeff powers)
-	  (incf sum (fpoly-eval-monomial vals powers coeff)))
+	  (fpoly-incf sum (fpoly-eval-monomial vals powers coeff)))
 	sum))
 
 ;; -------------
@@ -238,15 +269,12 @@ Always choose the (absolute value) which is smaller of the two options"
 
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val fpoly))
   "Substitute a variable for a polynomial"
-  (let* ((vars (fpoly-vars poly))
-		 (var-n (position var vars))
-		 (p (make-fpoly (remove var vars) (fpoly-degree poly))))
-	(docoeffs (poly coeff powers)
-	  (let ((p-powers (remove-nth powers var-n))
-			(var-val (expt val (nth var-n powers))))
-		(incf (apply #'fpoly-coeff p p-powers) (* coeff var-val))))
-	p))
-
+  (fpoly-eval poly
+			  (mapcar (lambda (v)
+						(if (eq v var)
+							(cons v val)
+							(cons v v)))
+					  (fpoly-vars poly))))
 
 ;; -------------------------
 

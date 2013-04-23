@@ -119,6 +119,13 @@
 							  (make-array size :initial-contents coeffs))
 							 (t (make-array size :initial-element 0))))))
 
+(defun make-monomial (variables powers &optional (coeff 1))
+  "Make a single variable polynomial with a single non-zero coefficient at degree n"
+  (let ((p (make-fpoly variables (reduce #'+ powers))))
+	(setf (apply #'fpoly-coeff p powers) coeff)
+	p))
+
+  
 (defun fpoly? (p) 
   "Predicate for fpoly"
   (typep p 'fpoly))
@@ -141,7 +148,9 @@ Returns zero if this is outside the array"
       ((< o (fpoly-size p))
        (setf (svref c o) val)
        (set-fpoly-coeffs c p))
-      (t (error "*** setf fpoly-size: offset lies outside of coeff array")))
+      (t (error 'fpoly-error
+				:place "FPOLY-SIZE"
+				:data "Offset lies outside of coeff array")))
     p))
 
 (defun print-fpoly (p &optional (stream *standard-output*))

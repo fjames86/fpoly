@@ -109,8 +109,10 @@ arguments."
 								 n))))))))
 	  (if (<= n max-n)
 		  (rec prime-list nil n)
-		  (error "Trying to split ~A, largest number supported is ~A~%"
-				 n max-n)))))
+		  (error 'fpoly-error
+				 :place "PRIME-FACTORS"
+				 :data (format nil "Trying to split ~A, largest number supported is ~A"
+							   n max-n))))))
 
 (defun prime? (n)
   "Predicate for a prime number"
@@ -262,7 +264,9 @@ arguments."
 														 source-vars source-powers)
 			  (if found
 				  power
-				  (error "*** shuffle-power-order: ~A not found in source vars" var))))
+				  (error 'fpoly-error
+						 :place "SHUFFLE-POWER-ORDER"
+						 :data (format nil "~A not found in source vars" var)))))
 		  target-vars))
 
 
