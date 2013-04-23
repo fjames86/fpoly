@@ -114,20 +114,28 @@
   (* p1 p2))
 
 (defmethod fpoly-mul ((p1 fpoly) (p2 number))
-  (make-fpoly (fpoly-vars p1)
-			  (fpoly-degree p1)
-			  (map 'vector
-					  (lambda (x)
-						(* x p2))
-					  (fpoly-coeffs p1))))
+  (cond
+	((zerop p2) 0)
+	((= p2 1) (fpoly-copy p1))
+	(t
+	  (make-fpoly (fpoly-vars p1)
+				  (fpoly-degree p1)
+				  (map 'vector
+					   (lambda (x)
+						 (* x p2))
+					   (fpoly-coeffs p1))))))
 
 (defmethod fpoly-mul ((p1 number) (p2 fpoly))
-  (make-fpoly (fpoly-vars p2)
-			  (fpoly-degree p2)
-			  (map 'vector
-				   (lambda (x)
-					 (* x p1))
-				   (fpoly-coeffs p2))))
+  (cond
+	((zerop p1) 0)
+	((= p1 1) (fpoly-copy p2))
+	(t
+	 (make-fpoly (fpoly-vars p2)
+				 (fpoly-degree p2)
+				 (map 'vector
+					  (lambda (x)
+						(* x p1))
+					  (fpoly-coeffs p2))))))
 
 (defmethod fpoly-mul ((p1 fpoly) (p2 fpoly))
   (let* ((degree (+ (fpoly-degree p1) (fpoly-degree p2)))
