@@ -97,9 +97,12 @@
    (coeffs :reader fpoly-coeffs :writer set-fpoly-coeffs :initarg :coeffs)
    (powers :reader fpoly-powers :initarg :powers)))
 
-(defun make-fpoly (vars degree &optional coeffs)  
+(defun make-fpoly (variables degree &optional coeffs)  
   "Make an fpoly object."
-  (let ((size (base-offset (length vars) degree)))
+  (let* ((vars (if (symbolp variables)
+				   (list variables)
+				   variables))
+		 (size (base-offset (length vars) degree)))
 	(make-instance 'fpoly 
 				   :vars vars
 				   :degree (if (= size 1) 0 degree)
