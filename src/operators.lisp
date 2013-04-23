@@ -69,6 +69,7 @@
 			 (setf coeff (+ c1 c2)))))
 	p))
 
+;; useful macro, same as incf but uses fpoly-add instead of +
 (defmacro fpoly-incf (place &optional (amount 1))
   (let ((gnew (gensym "NEW"))
 		(gamount (gensym "AMOUNT")))
