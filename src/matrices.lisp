@@ -1,4 +1,9 @@
 
+;;;;
+;;;; Defines a set of functions for manipulating matrices of polynomials,
+;;;; and also some other useful functions.
+;;;; 
+
 (in-package #:fpoly)
 
 ;; ---------------------------

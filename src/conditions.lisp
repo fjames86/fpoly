@@ -1,4 +1,8 @@
 
+;;;; 
+;;;; The condition and error classes used in fpoly
+;;;;
+
 (in-package #:fpoly)
 
 (define-condition fpoly-condition (error)

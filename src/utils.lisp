@@ -2,7 +2,7 @@
 
 ;;;;
 ;;;; A set of utilities that form part of the fpoly package
-;;;; Frank James 2013
+;;;; Frank James, 2013
 ;;;;
 
 (in-package #:fpoly)

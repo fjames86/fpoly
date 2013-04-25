@@ -1,4 +1,13 @@
 
+;;;;
+;;;; Routines for Multivariate Lagrange interpolation
+;;;; Takes a set of points (variable coordinates) that go through a set of values
+;;;; (values that the desired function evaluates to at these coordinates)
+;;;; and returns this polynomial function
+;;;;
+;;;; Exposes: lagrange-interpolate, lagrange-interpolate-matrix
+;;;;
+
 (in-package #:fpoly)
 
 ;;; mutlivariable lagrange intepolation

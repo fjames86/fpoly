@@ -1,4 +1,9 @@
 
+;;;;
+;;;; Defines the base class for polynomials and associated routines for
+;;;; accessing data slots, printing, parsing etc.
+;;;;
+
 (in-package #:fpoly)
 
 ;;; ------------- offset calculations -------

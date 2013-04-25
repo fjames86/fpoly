@@ -1,7 +1,16 @@
 
+;;;;
+;;;; Foreign function interface to libfpoly (C library of partner functions)
+;;;;
+;;;; All foreign functions are given the same names as the equivalent Lisp
+;;;; routines, with a % character prepended
+;;;; 
+
 (in-package #:fpoly-ffi)
 
+
 (defmacro load-fpoly (&optional search-path)
+  "Load the libfpoly library"
   `(progn
 	 (define-foreign-library ,(if search-path
 								  `(libfpoly :search-path ,search-path)
@@ -10,6 +19,7 @@
 	   (t "libfpoly.so"))
 	 (use-foreign-library libfpoly)))
 
+;;; -------------- type definitions -----------------------
 (defcstruct matrix-t
   (entries :pointer)
   (n :int))
@@ -18,11 +28,16 @@
   (entries :pointer)
   (n :int))
 
+;;; --------------- C function definitions -------------------
+
 (defcfun ("ffge" libfpoly-ffge) :void
   (mat (:pointer (:struct matrix-t)))
   (vec (:pointer (:struct vector-t))))
 
+;;; ---------------- Lisp wrappers -------------------------
+
 (defun %ffge (mat vec)
+  "Wrapper for C library FFGE function"
   (let ((n (length vec)))
 	(with-foreign-object (matrix 'matrix-t)
 	  (with-foreign-object (mat-entries :int (* n n))

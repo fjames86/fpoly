@@ -14,6 +14,8 @@
 (defvar vec (make-array 3
 						:initial-contents '(1 2 3)))
 
+;;; load the library
+(load-fpoly "/home/frank/quicklisp/local-projects/fpoly/libfpoly/")
 
 ;; lisp reduction operation
 (time (ffge mat vec))
