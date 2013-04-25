@@ -21,7 +21,8 @@
 				 (:file "matrices" :depends-on ("package" "utils"
 												"fpoly" "operators" "conditions"))
 				 (:file "interpolate" :depends-on ("package" "utils" "fpoly"
-												   "operators" "matrices" "conditions")))))
+												   "operators" "matrices" "conditions"))
+				 (:file "interface" :depends-on ("package")))))
   :depends-on (:cffi))
 
 

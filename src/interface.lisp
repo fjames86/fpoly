@@ -19,14 +19,14 @@
   (n :int))
 
 (defcfun ("ffge" libfpoly-ffge) :void
-  (v (:pointer (:struct vector-t)))
-  (n :int))
+  (mat (:pointer (:struct matrix-t)))
+  (vec (:pointer (:struct vector-t))))
 
 (defun %ffge (mat vec)
   (let ((n (length vec)))
 	(with-foreign-object (matrix 'matrix-t)
 	  (with-foreign-object (mat-entries :int (* n n))
-		(setf (foreign-slot-value matrix 'matrix-t 'entries) vals-array
+		(setf (foreign-slot-value matrix 'matrix-t 'entries) mat-entries
 			  (foreign-slot-value matrix 'matrix-t 'n) n)
 		(dotimes (i n)
 		  (dotimes (j n)
