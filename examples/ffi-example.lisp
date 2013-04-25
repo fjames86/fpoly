@@ -14,7 +14,8 @@
 (defvar vec (make-array 3
 						:initial-contents '(1 -2 33)))
 
-;;; load the library
+;;; load the library. provide a path to the library, otherwise it'll
+;;; probably moan that it can't find it.
 (load-fpoly "/home/frank/quicklisp/local-projects/fpoly/libfpoly/")
 
 ;; lisp reduction operation
