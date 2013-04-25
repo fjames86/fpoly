@@ -230,7 +230,7 @@ using the fraction free Gaussian Eliminaton alg"
 						(declare (ignore r))
 						(setf (aref a j k) q))))
 			 (setf (aref a j i) 0))))
-	(list a b)))
+	(values a b)))
 
 (defun make-identity (n)
   "Make an identity matrix"
