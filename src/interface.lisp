@@ -1,12 +1,14 @@
 
 (in-package #:fpoly-ffi)
 
-(define-foreign-library libfpoly
-  (:unix "libfpoly.so")
-  (t "libfpoly.so"))
-
-(defun load-fpoly ()
-  (use-foreign-library libfpoly))
+(defmacro load-fpoly (&optional search-path)
+  `(progn
+	 (define-foreign-library ,(if search-path
+								  `(libfpoly :search-path ,search-path)
+								  'libfpoly)
+	   (:unix "libfpoly.so")
+	   (t "libfpoly.so"))
+	 (use-foreign-library libfpoly)))
 
 (defcstruct matrix-t
   (entries :pointer)
