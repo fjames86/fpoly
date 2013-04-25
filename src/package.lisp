@@ -49,3 +49,8 @@
 		   #:lagrange-interpolate-matrix
 		   ))
 
+
+(defpackage #:fpoly-ffi
+  (:use #:cl #:cffi)
+  (:export #:%ffge))
+
