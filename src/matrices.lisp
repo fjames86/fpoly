@@ -215,22 +215,46 @@ using the fraction free Gaussian Eliminaton alg"
 		(b (copy-array vec)))
 	(let ((n (array-dimension b 0)))
 	  (dotimes (i (1- n))
+		;; pivot if needed
+		(if (zerop (aref a i i))
+			(pivot a b i n))
+		
 		(loop for j from (1+ i) to (1- n) do
 			 (setf (svref b j) (- (* (aref a i i) (svref b j))
 								  (* (aref a j i) (svref b i))))
 			 (if (> i 0) 
 				 (multiple-value-bind (q r) (truncate (svref b j) (aref a (1- i) (1- i)))
-				   (declare (ignore r))
+				   (declare (ignore r)) ; should be zero
 				   (setf (svref b j) q)))
 			 (loop for k from (1+ i) to (1- n) do
 				  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
 										(* (aref a j i) (aref a i k))))
 				  (if (> i 0)
-					  (multiple-value-bind (q r) (truncate (aref a j k) (aref a (1- i) (1- i)))
+					  (multiple-value-bind (q r) (truncate (aref a j k)
+														   (aref a (1- i) (1- i)))
 						(declare (ignore r))
 						(setf (aref a j k) q))))
 			 (setf (aref a j i) 0))))
-	(values a b)))
+	(list a b)))
+
+(defun ffge-list (mats vecs)
+  "Reduce a list of paired matrices and vectors"
+  (mapcar (lambda (mat vec)
+			(ffge mat vec))
+		  mats vecs))
+
+(defun pivot (mat vec i n)
+  "Find the first row >= i with element (i,j) non-zero, then swap the rows"
+  (labels ((rec (row)
+			 (cond
+			   ((= row n) nil) ; failed to swap any rows
+			   ((zerop (aref mat row i))
+				(rec (1+ row)))
+			   (t (dotimes (col n)
+					(rotatef (aref mat i col) (aref mat row col)))
+				  (rotatef (svref vec i) (svref vec row))
+				  t))))
+	(rec i)))
 
 (defun make-identity (n)
   "Make an identity matrix"
