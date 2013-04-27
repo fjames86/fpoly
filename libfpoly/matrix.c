@@ -59,9 +59,10 @@ int pivot(int *a, int *b, int i, int n) {
 }
 void ffge_list (int *mats, int *vecs, int num, int n) {
 	int i;
-
+	int err;
+	
 	for(i=0; i < num; i++) {
-		ffge(mats + num*n*n, vecs + num*n, n);
+		err = ffge(mats + i*n*n, vecs + i*n, n);
 	}
 }
 
