@@ -23,7 +23,7 @@
 
 ;;; --------------- C function definitions -------------------
 
-(defcfun ("ffge" libfpoly-ffge) :void
+(defcfun ("ffge" libfpoly-ffge) :int
   (mat :pointer)
   (vec :pointer)
   (n :int))
@@ -48,7 +48,8 @@
 		  (dotimes (j n)
 			(setf (mem-aref mat :int (maref i j n)) (aref matrix i j)))
 		  (setf (mem-aref vec :int i) (svref vector i)))
-		(libfpoly-ffge mat vec n)
+		(unless (zerop (libfpoly-ffge mat vec n))
+		  (error "*** %FFGE C call returned error; probably a division by zero"))
 		(let ((m (make-array (list n n)))
 			  (v (make-array n)))
 		  (dotimes (i n)
