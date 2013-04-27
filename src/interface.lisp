@@ -20,46 +20,65 @@
 	 (use-foreign-library libfpoly)))
 
 ;;; -------------- type definitions -----------------------
-(defcstruct matrix-t
-  (entries :pointer)
-  (n :int))
-
-(defcstruct vector-t
-  (entries :pointer)
-  (n :int))
 
 ;;; --------------- C function definitions -------------------
 
 (defcfun ("ffge" libfpoly-ffge) :void
-  (mat (:pointer (:struct matrix-t)))
-  (vec (:pointer (:struct vector-t))))
+  (mat :pointer)
+  (vec :pointer)
+  (n :int))
+
+(defcfun ("ffge_list" libfpoly-ffge-list) :void
+  (mats :pointer)
+  (vecs :pointer)
+  (num :int)
+  (n :int))
 
 ;;; ---------------- Lisp wrappers -------------------------
 
-(defun %ffge (mat vec)
+(defun %ffge (matrix vector)
   "Wrapper for C library FFGE function"
-  (let ((n (length vec)))
-	(with-foreign-object (matrix 'matrix-t)
-	  (with-foreign-object (mat-entries :int (* n n))
-		(setf (foreign-slot-value matrix 'matrix-t 'entries) mat-entries
-			  (foreign-slot-value matrix 'matrix-t 'n) n)
+  (let ((n (array-dimension vector 0)))
+	(with-foreign-object (mat :int (* n n))
+	  (with-foreign-object (vec :int n)
 		(dotimes (i n)
 		  (dotimes (j n)
-			(setf (mem-aref mat-entries :int (+ (* i n) j)) (aref mat i j))))
-		(with-foreign-object (vect 'vector-t)
-		  (with-foreign-object (vect-entries :int n)
-			(setf (foreign-slot-value vect 'vector-t 'entries) vect-entries
-				  (foreign-slot-value vect 'vector-t 'n) n)
-			(dotimes (i n)
-			  (setf (mem-aref vect-entries :int i) (svref vec i)))
-			;; call the C function
-			(libfpoly-ffge matrix vect)
-			;; get the return values
-			(let ((mat1 (make-array (list n n)))
-				  (vec1 (make-array n)))
-			  (dotimes (i n)
-				(dotimes (j n)
-				  (setf (aref mat1 i j) (mem-aref mat-entries :int (+ (* i n) j))))
-				(setf (svref vec1 i) (mem-aref vect-entries :int i)))
-			  (values mat1 vec1))))))))
+			(setf (mem-aref mat :int (+ (* i n) j)) (aref matrix i j)))
+		  (setf (mem-aref vec :int i) (svref vector i)))
+		(libfpoly-ffge mat vec n)
+		(let ((m (make-array (list n n)))
+			  (v (make-array n)))
+		  (dotimes (i n)
+			(dotimes (j n)
+			  (setf (aref m i j) (mem-aref mat :int (+ (* i n) j))))
+			(setf (svref v i) (mem-aref vec :int i)))
+		  (list m v))))))
+
+(defun %ffge-list (matrices vectors)
+  (let* ((num (length matrices))
+		 (n (array-dimension (car matrices) 0)))
+	(with-foreign-object (mats :int (* num n n))
+	  (with-foreign-object (vecs :int (* num n))
+		(do ((matrices1 matrices (cdr matrices1))
+			 (vectors1 vectors (cdr vectors1))
+			 (i 0 (1+ i)))
+			((or (null matrices1) (null vectors1)))
+		  (dotimes (j n)
+			(dotimes (k n)
+			  (setf (mem-aref mats :int (+ (* i n n) (* j n) k))
+					(aref (car matrices1) j k)))
+			(setf (mem-aref vecs :int (+ (* i n) j))
+				  (svref (car vectors1) j))))
+		(libfpoly-ffge-list mats vecs num n)
+		(loop for i below num collect
+			 (let ((m (make-array (list n n)))
+				   (v (make-array n)))
+			   (dotimes (j n)
+				 (dotimes (k n)
+				   (setf (aref m j k) (mem-aref mats :int (+ (* i n n) (* j n) k))))
+				 (setf (svref v j) (mem-aref vecs :int (+ (* i n) j))))
+			   (list m v)))))))
+
+								 
+					   
 

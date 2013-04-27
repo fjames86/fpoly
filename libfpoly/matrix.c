@@ -1,17 +1,12 @@
 
 #include "matrix.h"
 
+void ffge(int *a, int *b, int n) {
+	int i, j, k;
 
-void ffge(struct matrix_t *mat, struct vector_t *vec) {
-	int i, j, k, n;
-	int *a, *b;
-	
-	n = mat->n;
-	a = mat->entries;
-	b = vec->entries;
 	for(i = 0; i < n - 1; ++i) {
 		for(j = i + 1; j < n; ++j) {
-			vec->entries[j] = a[i*n + i]*b[j] - a[j*n + i]*b[i];
+			b[j] = a[i*n + i]*b[j] - a[j*n + i]*b[i];
 			if (i > 0) {
 				b[j] = b[j] / a[(i-1)*n + i-1];
 			}
@@ -25,6 +20,14 @@ void ffge(struct matrix_t *mat, struct vector_t *vec) {
 
 			a[j*n + i] = 0;
 		}
+	}
+}
+
+void ffge_list (int *mats, int *vecs, int num, int n) {
+	int i;
+
+	for(i=0; i < num; i++) {
+		ffge(mats + num*n*n, vecs + num*n, n);
 	}
 }
 
