@@ -217,7 +217,10 @@ using the fraction free Gaussian Eliminaton alg"
 	  (dotimes (i (1- n))
 		;; pivot if needed
 		(if (zerop (aref a i i))
-			(pivot a b i n))
+			(if (null (pivot a b i n))
+				(error 'fpoly-error
+					   :place "FFGE"
+					   :data "Unsolveable matrix, all zeroes in pivot column")))
 		
 		(loop for j from (1+ i) to (1- n) do
 			 (setf (svref b j) (- (* (aref a i i) (svref b j))
@@ -238,9 +241,13 @@ using the fraction free Gaussian Eliminaton alg"
 	(list a b)))
 
 (defun ffge-list (mats vecs)
-  "Reduce a list of paired matrices and vectors"
+  "Reduce a list of paired matrices and vectors. If the matrix is unsolveable then
+return (list NIL NIL)"
   (mapcar (lambda (mat vec)
-			(ffge mat vec))
+			(handler-case (ffge mat vec)
+			  (fpoly-error (e)
+				(declare (ignore e))
+				(list nil nil))))
 		  mats vecs))
 
 (defun pivot (mat vec i n)
