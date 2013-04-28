@@ -58,11 +58,23 @@ int pivot(int *a, int *b, int i, int n) {
 	return err;
 }
 void ffge_list (int *mats, int *vecs, int num, int n) {
-	int i;
+	int i, j, k;
 	int err;
+	int *a, *b;
 	
-	for(i=0; i < num; i++) {
+	for(i=0; i < num; ++i) {
 		err = ffge(mats + i*n*n, vecs + i*n, n);
+		if (err == 1) {
+			/* unsolveable matrix, set it all to zero */
+			a = mats + i*n*n;
+			b = vecs + i*n;
+			for(j=0; j < n; ++j) {
+				for(k=0; k < n; ++k) {
+					aref(a, j, k, n) = 0;
+				}
+				b[j] = 0;
+			}
+		}
 	}
 }
 
