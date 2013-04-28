@@ -10,8 +10,8 @@
 mpz_t *factorial_table;
 mpz_t tmp_1, tmp_2, tmp_3;
 
-void factorial(mpz_t x, unsigned long int n);
-void ncr(mpz_t x, unsigned long int n, unsigned long int k);
+void factorial(mpz_t x, int n);
+int ncr(int n, int k);
 
 
 #endif
