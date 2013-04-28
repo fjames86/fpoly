@@ -4,10 +4,18 @@
 /* ---------------------- init ----------------- */
 
 void fpoly_open () {
+	int i;
+	
 	symbol_init (FPOLY_SYMBOLS);
 	mpz_init(tmp_1);
 	mpz_init(tmp_2);
-	mpz_init(tmp_3);	
+	mpz_init(tmp_3);
+
+	factorial_table = (mpz_t *)malloc(sizeof(mpz_t)*MAX_FACTORIAL);	
+	for(i=0; i < MAX_FACTORIAL; ++i) {
+		mpz_init(factorial_table[i]);
+		mpz_fac_ui(factorial_table[i], i);
+	}	
 }
 
 void fpoly_close () {
@@ -137,6 +145,7 @@ void print_fpoly (fpoly *p) {
 
 	printf (" :COEFFS #(");
 	for(i=0; i < p->size; ++i) {
+		if (i > 0) printf (" ");
 		mpz_out_str(stdout, 10, p->coeffs[i]);
 	}
 	
