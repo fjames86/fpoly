@@ -19,12 +19,17 @@ void fpoly_open () {
 }
 
 void fpoly_close () {
+	int i;
 	/* free all tables etc */
 
 	mpz_clear(tmp_1);
 	mpz_clear(tmp_2);
 	mpz_clear(tmp_3);
-	
+
+	for(i=0; i < MAX_FACTORIAL; ++i) {
+		mpz_clear(factorial_table[i]);
+	}
+	free(factorial_table);
 }
 
 /* ---------------- make the object ---------------- */
@@ -44,7 +49,7 @@ fpoly *make_fpoly(symbol *vars, int nvars, int degree) {
 	
 	/* set the coefs */
 	p->degree = degree;
-	p->size = base_offset(nvars, degree+1);
+	p->size = base_offset(nvars, degree);
 	p->coeffs = (mpz_t *)malloc(sizeof(mpz_t)*p->size);
 
 	for (i=0; i < p->size; ++i) {
@@ -78,33 +83,42 @@ int base_offset (int nvars, int degree) {
 }
 
 int number_terms (int nvars, int degree) {
-	if (degree == 1) {
+	if (degree == 0) {
 		return 1;
 	} else {
-		return base_offset(nvars, degree+1) - base_offset(nvars, degree);
+		return base_offset(nvars, degree) - base_offset(nvars, degree-1);
 	}
 }
 
 int power_offset (int nvars, int *powers) {
-	int degree, power;
+	int total_degree, partial_degree, power;
 	int i;
 
-	degree = 0;
-	for(i=0; i < nvars; i++) {
-		degree += powers[i];
+	total_degree = powers[0];
+	partial_degree = 0;
+	for(i=1; i < nvars; ++i) {
+		total_degree += powers[i];
+		partial_degree += powers[i];
 	}
 
 	power = powers[0];
 	
-	if (nvars == 1 || degree == 0) {
+	if (nvars == 1 || total_degree == 0) {
 		return 0;
+	} else {
+		return number_terms (nvars, partial_degree - 1) + power_offset (nvars - 1, &powers[1]);
+	}
+}
+
+/*
 	} else if (power == 0) {
-		return number_terms (nvars, degree - 1) + power_offset(nvars - 1, &powers[1]);
+		return number_terms (nvars, degree - 1) + power_offset (nvars - 1, &powers[1]);
 	} else {
 		powers[0] -= 1;
 		return power_offset(nvars, powers);
 	}
 }
+*/
 
 int offset(int nvars, int *powers) {
 	int degree, i;
