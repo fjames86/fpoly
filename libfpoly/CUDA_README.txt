@@ -30,8 +30,7 @@ characters are put on either end. e.g. ffge_list -> _Z9ffge_listPiS_ii
 CFFI only knows about this symbol, not "ffge_list" so you need to change the
 definition to
 
-(defcfun ("_Z9ffge_listPiS_ii" ffge-list) ...)
+(defcfun ("_Z9ffge_listPiS_ii" libfpoly-ffge-list) :int (mats :pointer) (vecs :pointer) (num :int) (n :int))
 
 Possibly can change the compilation options to avoid this?
-
 

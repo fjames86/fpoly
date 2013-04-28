@@ -34,6 +34,13 @@
   (num :int)
   (n :int))
 
+;; if loaded the GPU library then this might work?
+(defcfun ("_Z9ffge_listPiS_ii" libfpoly-ffge-list-gpu) :int
+  (mats :pointer)
+  (vecs :pointer)
+  (num :int)
+  (n :int))
+
 ;;; ---------------- Lisp wrappers -------------------------
 
 (defun maref (row col n)
@@ -58,7 +65,7 @@
 			(setf (svref v i) (mem-aref vec :int i)))
 		  (list m v))))))
 
-(defun %ffge-list (matrices vectors)
+(defun %ffge-list (matrices vectors &optional gpu)
   (let* ((num (length matrices))
 		 (n (array-dimension (car matrices) 0)))
 	(with-foreign-object (mats :int (* num n n))
@@ -73,7 +80,11 @@
 					(aref (car matrices1) j k)))
 			(setf (mem-aref vecs :int (+ (* i n) j))
 				  (svref (car vectors1) j))))
-		(libfpoly-ffge-list mats vecs num n)
+		
+		(if gpu
+			(libfpoly-ffge-list-gpu mats vecs num n)
+			(libfpoly-ffge-list mats vecs num n))
+		
 		(loop for i below num collect
 			 (let ((m (make-array (list n n)))
 				   (v (make-array n)))

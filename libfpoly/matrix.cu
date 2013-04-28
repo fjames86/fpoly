@@ -12,13 +12,13 @@
 __device__ int ffge(int *mat, int *vec, int n);
 
 /* launch the threads on the GPU */
-__global__ int ffge_gpu(int *mats, int *vecs, int num, int n);
+__global__ void ffge_gpu(int *mats, int *vecs, int num, int n);
 
 /* pivoting rows */
 __device__ int pivot(int *a, int *b, int i, int n);
 
 /* the entry point for calling */
-void ffge_list (int *mats, int *vecs, int num, int n);
+int ffge_list (int *mats, int *vecs, int num, int n);
 
 
 /* a = matrix, b = vector */

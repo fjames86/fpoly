@@ -14,18 +14,6 @@
 (defvar vec (make-array 3
 						:initial-contents '(1 -2 33)))
 
-(with-foreign-object (mats :int 9) (with-foreign-object (vecs :int 3) (setf (mem-aref mats :int 0) 10)
-														(setf (mem-aref mats :int 1) 1) (setf (mem-aref mats :int 2) -1)
-														(setf (mem-aref mats :int 3) 2) (setf (mem-aref mats :int 4) 0)
-														(setf (mem-aref mats :int 5) 2) (setf (mem-aref mats :int 6) 13)
-														(setf (mem-aref mats :int 7) 3)(setf (mem-aref mats :int 8) -23)
-														(setf (mem-aref vecs :int 0) 1) (setf (mem-aref vecs :int 1) -2)
-														(setf (mem-aref vecs :int 2) 33) (ffge-list2 mats vecs 1 3)
-														(let ((m (make-array (list 3 3))) (v (make-array 3)))
-														  (dotimes (i 3) (dotimes (j 3) (setf (aref m i j) (mem-aref mats :int (+ (* i 3) j))))
-																   (setf (svref v i) (mem-aref vecs :int i))) (list m v))))
-
-
 ;;; load the library. provide a path to the library, otherwise it'll
 ;;; probably moan that it can't find it.
 (load-fpoly "/home/frank/quicklisp/local-projects/fpoly/libfpoly/")
@@ -42,4 +30,45 @@
 ;; #(1 -22 -26)
 ;; -> 29,860 processor cycles
 
+;; CUDA Example with %ffge-list calling a CUDA function on the GPU
+
+(defun random-matrix ()
+  (let ((m (make-array (list 3 3))))
+	(dotimes (i 3)
+	  (dotimes (j 3)
+		(setf (aref m i j) (- 5 (random 10)))))
+	m))
+
+(defun random-vector ()
+  (let ((v (make-array 3)))
+	(dotimes (i 3)
+	  (setf (svref v i) (- 5 (random 10))))
+	v))
+
+(defvar mymats (loop for i below 100 collect (random-matrix)))
+(defvar myvecs (loop for i below 100 collect (random-vector)))
+
+;; call the GPU function
+(time (%ffge-list mymats myvecs))
+
+Evaluation took:
+  0.001 seconds of real time
+  0.000000 seconds of total run time (0.000000 user, 0.000000 system)
+  0.00% CPU
+  1,623,529 processor cycles
+  32,768 bytes consed
+
+
+;; do it in Lisp
+(time (fpoly::ffge-list mymats myvecs))
+
+Evaluation took:
+  0.000 seconds of real time
+  0.000000 seconds of total run time (0.000000 user, 0.000000 system)
+  100.00% CPU
+  469,142 processor cycles
+  32,768 bytes consed
+
+;; Seems to be much quicker to do it in Lisp, but that could be due to a number of factors
+;; e.g. matrix size, thread/block allocation etc.
 
