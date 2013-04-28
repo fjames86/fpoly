@@ -21,18 +21,14 @@
 		 (base-offset num-vars (1- degree)))))
 
 (defun power-offset (powers)
-  (let ((degree (reduce #'+ powers))
-		(power (car powers)))
+  (let ((degree (reduce #'+ (cdr powers))))
 	(cond
 	  ((or (null (cdr powers))
-		   (= degree 0))
+		   (= (+ (car powers) degree) 0))
 	   0)
-	  ((= power 0)
+	  (t 
 	   (+ (number-terms (length powers) (1- degree))
-		  (power-offset (cdr powers))))
-	  (t
-	   (power-offset (cons (1- power)
-						   (cdr powers)))))))
+		  (power-offset (cdr powers)))))))
 
 (defun offset (powers)
   (+ (base-offset (length powers) (1- (reduce #'+ powers)))

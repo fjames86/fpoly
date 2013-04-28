@@ -10,6 +10,7 @@
 #include "symbol.h"
 #include "utils.h"
 
+/* starting size of symbol stack */
 #define FPOLY_SYMBOLS 10
 
 typedef struct {
@@ -20,23 +21,28 @@ typedef struct {
 	int nvars;
 } fpoly;
 
-void fpoly_open();
-void fpolt_close();
+/* call open/close before/after using any other function */
+void fpoly_open ();
+void fpoly_close ();
 
-fpoly *make_fpoly(symbol *vars, int nvars, int degree);
-void free_fpoly(fpoly *p);
+/* make a poly object and free it */
+fpoly *make_fpoly (symbol *vars, int nvars, int degree);
+void free_fpoly (fpoly *p);
 
+/* offset related functions */
 int base_offset (int nvars, int degree);
 int number_terms (int nvars, int degree);
 int power_offset (int nvars, int *powers);
 int offset (int nvars, int *powers);
 
+/* various getters/setters */
 mpz_t *fpoly_coeff (fpoly *p, int *powers);
 void set_fpoly_coeff (fpoly *p, int *powers, mpz_t val);
 void set_fpoly_coeff_si (fpoly *p, int *powers, long int val);
-void fpoly_coeff_add(fpoly *p, int *powers, mpz_t val);
+void fpoly_coeff_add (fpoly *p, int *powers, mpz_t val);
 void fpoly_coeff_add_si (fpoly *p, int *powers, long int val);
 
+/* printing routines */
 void print_fpoly (fpoly *p);
 
 #endif /* fpoly.h */
