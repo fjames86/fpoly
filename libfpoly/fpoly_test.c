@@ -28,9 +28,12 @@ int main(int argc, char **argv) {
 
 	powers[0] = 1;
 	powers[1] = 1;
-	mpz_init(val);
-	mpz_set_ui(val, 3);
-	set_fpoly_coeff(p, powers, val);
+	set_fpoly_coeff_si (p, powers, 3);
+
+	powers[0] = 2;
+	powers[1] = 0;
+	set_fpoly_coeff_si (p, powers, -1);
+
 	
 	/* print it */
 	print_fpoly(p);

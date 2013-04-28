@@ -33,6 +33,9 @@ int offset (int nvars, int *powers);
 
 mpz_t *fpoly_coeff (fpoly *p, int *powers);
 void set_fpoly_coeff (fpoly *p, int *powers, mpz_t val);
+void set_fpoly_coeff_si (fpoly *p, int *powers, long int val);
+void fpoly_coeff_add(fpoly *p, int *powers, mpz_t val);
+void fpoly_coeff_add_si (fpoly *p, int *powers, long int val);
 
 void print_fpoly (fpoly *p);
 
