@@ -23,7 +23,7 @@ Call it using (with-foreign-object ...)
 
 It works!
 
-THe pitfall is Name Mangling
+The pitfall is name mangling
 
 NVCC seems to not insert correct symbols, but rather some strange extra
 characters are put on either end. e.g. ffge_list -> _Z9ffge_listPiS_ii
@@ -32,5 +32,7 @@ definition to
 
 (defcfun ("_Z9ffge_listPiS_ii" libfpoly-ffge-list) :int (mats :pointer) (vecs :pointer) (num :int) (n :int))
 
-Possibly can change the compilation options to avoid this?
+Now have this function in the interface.lisp, giving the name libfpoly-ffge-list-gpu (it also returns an :int instead of :void)
+
+Possibly can change the compilation options to avoid this naming issue?
 

@@ -3,13 +3,15 @@
 #define UTILS_H
 
 #include <stdlib.h>
+#include <gmp.h>
 
-#define FACTORIAL_TABLE_SIZE 10
+#define MAX_FACTORIAL 500
 
-int *factorial_table;
+mpz_t *factorial_table;
+mpz_t tmp_1, tmp_2, tmp_3;
 
-int factorial(int n);
-int ncr(int n, int k);
+void factorial(mpz_t x, unsigned long int n);
+void ncr(mpz_t x, unsigned long int n, unsigned long int k);
 
 
 #endif

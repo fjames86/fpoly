@@ -34,7 +34,7 @@
   (num :int)
   (n :int))
 
-;; if loaded the GPU library then this might work?
+;; if using the GPU library then this might work?
 (defcfun ("_Z9ffge_listPiS_ii" libfpoly-ffge-list-gpu) :int
   (mats :pointer)
   (vecs :pointer)

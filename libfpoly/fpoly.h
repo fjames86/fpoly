@@ -10,33 +10,30 @@
 #include "symbol.h"
 #include "utils.h"
 
-#define FPOLY_MAX_POOL 10
+#define FPOLY_SYMBOLS 10
 
-#define MAXVARS   5
-#define MAXDEGREE 20
-
-#define MAXCOEFFS 53130 /* lisp: (base-offset 5 20) = 53130 */
-
-struct fpoly_t {
-	/* list of variables */
+typedef struct {
+	mpz_t *coeffs;
+	int size;
+	int degree;
 	symbol *vars;
 	int nvars;
+} fpoly;
 
-	/* array of coefficients */
-	int degree;
-	int size; 
-	mpz_t *coeffs;
-};
-
-/* pool of pre-allocated fpoly_t structs */
-struct fpoly_t *fpoly_pool;
-
-/* allocate the pool and initialise them */
 void fpoly_open();
-void fpoly_close();
-void fpoly_init(struct fpoly_t *p, symbol *vars, int nvars, int degree);
+void fpolt_close();
 
-/* get a poly struct from the pool and initialise it */
-struct fpoly_t *make_fpoly(symbol *vars, int nvars, int degree);
+fpoly *make_fpoly(symbol *vars, int nvars, int degree);
+void free_fpoly(fpoly *p);
+
+int base_offset (int nvars, int degree);
+int number_terms (int nvars, int degree);
+int power_offset (int nvars, int *powers);
+int offset (int nvars, int *powers);
+
+mpz_t *fpoly_coeff (fpoly *p, int *powers);
+void set_fpoly_coeff (fpoly *p, int *powers, mpz_t val);
+
+void print_fpoly (fpoly *p);
 
 #endif /* fpoly.h */
