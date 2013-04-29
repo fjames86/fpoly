@@ -74,6 +74,31 @@ arguments."
 			(row-major-aref array i)))
 	new-array))
 
+(defun string-split (string &optional (charbag " "))
+  (labels ((rec (index start-index substrs)
+			 (if (>= index (length string))
+				 (nreverse (cons (subseq string start-index index)
+								 substrs))
+				 (let ((pos (position (char string index) charbag :test #'char-equal)))
+				   (cond
+					 ((not pos)
+					   (rec (1+ index)
+							start-index
+							substrs))
+					 ((= index start-index)
+					  (rec (1+ index)
+						   (1+ index)
+						   (cons (string (char string index))
+								 substrs)))
+					 (t
+					  (rec (1+ index)
+						   (1+ index)
+						   (list* (string (char string index))
+								  (subseq string start-index index)
+								  substrs))))))))					  
+	(rec 0 0 nil)))
+  
+  
 ;;; ---------------- some useful number routines -----------
 
 ;; several prime number related functions follow

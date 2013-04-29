@@ -200,7 +200,7 @@ Returns zero if this is outside the array"
 				(fpoly-coeffs p)))
       (print-fpoly p stream)))
 
-(defun parse-fpoly (stream)
+(defun parse-fpoly-simple (stream)
   "Parse a number or polynomial of format <vars> <degree> <coeffs>"
   (let* ((str (read-line stream nil nil))
 		 (i (if str (parse-integer str :junk-allowed t) nil)))
@@ -216,4 +216,34 @@ Returns zero if this is outside the array"
 					  (or (listp coeffs) (arrayp coeffs)))
 				 (make-fpoly vars degree coeffs)
 				 nil)))))))
+
+
+(defun read-monomials (stream)
+  (do ((c (read-char stream nil nil) (read-char stream nil nil))
+	   (monomials nil))
+	  ((null c) monomials)))
+
+
+(defun parse-fpoly (stream)
+  "Parse a polynomial from the stream, pretty format e.g. X^2 + Y ..."
+  (let ((string (apply #'concatenate
+					   'string
+					   (loop for line = (read-line stream nil nil)
+						  while line
+						  collect line))))
+	(do ((terms (string-split string " *+-()^"))
+		 (coeff 1)
+		 (vars nil)
+		 (powers nil)
+		 (monomials nil))
+		((null terms))
+	  (let ((term (car terms)))
+		(cond
+		  ((parse-integer term :junk-allowed t)
+		   (setf coeff (parse-integer term))))))))
+		  
+	  
+		 
+
+
 
