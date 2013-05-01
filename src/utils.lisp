@@ -44,6 +44,7 @@
 	(rec list)))
 
 (defun remove-nth (list n)
+  "Return a new list with the nth element removed"
   (labels ((rec (list i acc)
 			 (cond
 			   ((null list) acc)
@@ -54,6 +55,19 @@
 					  (1+ i)
 					  (append acc (list (car list))))))))
 	(rec list 0 nil)))
+
+(defun group-by (list n)
+  "Group a list into sub-lists of length n"
+  (do ((i 0 (1+ i))
+	   (l list (cdr l))
+	   group res)
+	  ((null l)
+	   (when group (push (nreverse group) res))
+	   (nreverse res))
+	(push (first l) group)
+	(when (= (length group) n)
+	  (push (nreverse group) res)
+	  (setf group nil))))
 
 ;; copy a 2d array (matrix)
 (defun copy-array (array &key
@@ -97,7 +111,24 @@ arguments."
 								  (subseq string start-index index)
 								  substrs))))))))					  
 	(rec 0 0 nil)))
-  
+
+(defun read-until (predicate stream)
+  (labels ((rec (acc)
+			 (let ((c (read-char stream nil nil)))
+			   (cond
+				 ((null c)
+				  (if (null acc)
+					  nil
+					  (map 'string #'identity (nreverse acc))))
+				 ((funcall predicate c)
+				  (if (null acc)
+					  (string c)
+					  (progn
+						(unread-char c stream)
+						(map 'string #'identity (nreverse acc)))))
+				 (t (rec (cons c acc)))))))
+	(rec nil)))
+
   
 ;;; ---------------- some useful number routines -----------
 
