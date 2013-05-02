@@ -100,9 +100,11 @@
 
 (defun make-fpoly (variables degree &optional coeffs)  
   "Make an fpoly object."
-  (let* ((vars (if (symbolp variables)
-				   (list variables)
-				   variables))
+  (let* ((vars (cond
+				 ((null variables) nil)
+				 ((symbolp variables)
+				  (list variables))
+				 (t variables)))
 		 (size (base-offset (length vars) degree)))
 	(make-instance 'fpoly 
 				   :vars vars
