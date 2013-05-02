@@ -1,5 +1,4 @@
 
-
 ;;;;
 ;;;; A set of utilities that form part of the fpoly package
 ;;;; Frank James, 2013
@@ -311,7 +310,11 @@ arguments."
 						   (cdr source-powers)
 						   acc))
 					 (t nil))))))
-	(nreverse (rec source-vars source-powers nil))))
+	(if (and (null target-vars)
+			 (zerop (reduce #'+ source-powers)))
+		(list 0)
+		(nreverse (rec source-vars source-powers nil)))))
+
 
 (defun shuffle-power-order (source-vars source-powers target-vars)
   "Switch power order around, e.g. from (x=1, y=2) -> (y=2, x=1)"

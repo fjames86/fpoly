@@ -177,7 +177,7 @@ Returns zero if this is outside the array"
 				(format stream "-")))
 			 ((= coeff 1)
 			  nil)
-			 (t (format stream "~A*" coeff)))
+			 (t (format stream "~A*" (* sign coeff))))
 		   ;; print the variables
 		   (mapc (lambda (x n)
 				   (cond
