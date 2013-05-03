@@ -1,4 +1,4 @@
-fpoly
+FPOLY
 =====
 
 A package for manipulation of dense multivariate polynomials. Contains routines for:
@@ -21,17 +21,30 @@ See examples/ffi-example.lisp for an example of it in use.
 
 
 Getting started
-===
+---------------
 
 * Entering polynomials
 
-There is a reader macro defined, #{ }, allowing entering of human readable format
-polynomials, e.g. #{1 + 2x^2} -> #<FPOLY :VARS (X) :DEGREE 2 :COEFFS #(1 0 2)>
+Create polynomial objects with the (make-fpoly <vars> <degree>) function. This returns
+a polynomials in the variables and degree specified, with all coeffieients set to zero.
+You may then set coeffients using (setf (fpoly-coeff ...) Val) e.g.
+
+(defvar p (make-fpoly '(x y) 2)) ; in X,Y of degree 2
+(setf (fpoly-coeff poly 1 1) 2) ; set the coeff in front of the XY term to 2
+
+There is a reader macro defined for convenience, #{ },
+allowing entering of human readable format polynomials, e.g.
+#{1 + 2x^2} -> 1 + 2X^2 ;; equivalent to (make-fpoly 'X 2 '(1 0 2))
+
 Note that the parser can only cope with single-character variable names.
 This is due to the ambiguity of terms like "xyz", is this equal to multplying three variables,
 X, Y, Z or two variables XY, Z etc. If long names are required then they have to be set
 by a substitute call, e.g. we want 1 + FOO^2 so we do
 (princ (fpoly-substitute 'x 'foo #{1 + 2x^2})) 1 + 2*X^2
+
+Note also that the parser is robust enough to cope with nested subexpressions, e.g.
+#{x(1 + y)} -> X + XY
+
 
 * Operations
 
