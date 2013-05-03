@@ -115,8 +115,8 @@
 				  ;; addition of new monomial
 				  (fpoly-add acc (build-monomial 1)))
 				 ((char-equal word #\-)
-				  ;; substraction of new monomial
-				  (fpoly-sub acc (build-monomial 1)))
+				  ;; subtraction of new monomial
+				  (fpoly-add acc (build-monomial -1)))
 				 ((char-equal word #\()
 				  ;; opening paren, parse a new polynomial until it hits a closing paren
 				  (build-monomial (fpoly-mul acc
@@ -167,8 +167,6 @@
 	 (if (numberp p)
 		 (make-fpoly nil 0 (list p))
 		 p))))
-
-
 							  
 
 ;;;; ------------- matrices
