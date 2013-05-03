@@ -47,6 +47,10 @@
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix
+
+		   ;; parsing
+		   #:parse-fpoly
+		   #:parse-fpoly-string
 		   ))
 
 
