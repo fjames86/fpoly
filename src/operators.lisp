@@ -321,5 +321,20 @@ Always choose the (absolute value) which is smaller of the two options"
 	p))
 
 	  
-											  
+;;; ------------
+
+;; reducer
+;; used for summing/multiplying a set of polynomial objects
+
+(defun fpoly-sum (polys)
+  "Efficiently sum a set of polynomials. Equivalent to (apply #'reduce #'fpoly-add poly polys)"
+  (let ((vars (reduce #'merge-vars (mapcar #'fpoly-vars polys)))
+		(degree (apply #'max (mapcar #'fpoly-degree polys))))
+	(let ((p (make-fpoly vars degree)))
+	  (docoeffs (p coeff powers)
+		(setf coeff
+			  (loop for ply in polys sum
+				   (let ((pws (project-powers vars powers (fpoly-vars ply))))
+					 (if pws (apply #'fpoly-coeff ply pws) 0)))))
+	  p)))
 

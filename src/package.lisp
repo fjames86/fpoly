@@ -26,6 +26,7 @@
 		   #:fpoly-copy
 		   #:fpoly-substitute
 		   #:fpoly-simplify
+		   #:fpoly-sum
 		   
 		   ;; matrices
 		   #:make-matrix
