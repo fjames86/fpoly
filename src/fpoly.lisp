@@ -195,10 +195,9 @@ Returns zero if this is outside the array"
 ;; generic method for lisp printer. will print "nicely" for princ or format ~A 
 (defmethod print-object ((p fpoly) stream)
   (if *print-escape*
-      (print-unreadable-object (p stream :type t)
-		(format stream ":VARS ~A :DEGREE ~A :COEFFS ~A"
-				(fpoly-vars p)
-				(fpoly-degree p)
-				(fpoly-coeffs p)))
+	  (progn
+		(princ "#{" stream)
+		(print-fpoly p stream)
+		(princ "}" stream))
       (print-fpoly p stream)))
 
