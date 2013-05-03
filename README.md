@@ -19,6 +19,12 @@ To use the C library, first make it using the provided Makefile (note: libfpoly 
 not currently use all *.c files in the libfpoly directory).
 See examples/ffi-example.lisp for an example of it in use.
 
+
+Getting started
+===
+
+* Entering polynomials
+
 There is a reader macro defined, #{ }, allowing entering of human readable format
 polynomials, e.g. #{1 + 2x^2} -> #<FPOLY :VARS (X) :DEGREE 2 :COEFFS #(1 0 2)>
 Note that the parser can only cope with single-character variable names.
@@ -27,6 +33,28 @@ X, Y, Z or two variables XY, Z etc. If long names are required then they have to
 by a substitute call, e.g. we want 1 + <foo>^2 so we do
 (fpoly-substitute 'x 'foo #{1 + 2x^2}) -> #<FPOLY :VARS (FOO) :DEGREE 2 :COEFFS #(1 0 2)>
 
+* Operations
+
+There are functions for the standard arithmetic operations addition (fpoly-add) subtraction (fpoly-sub), multiplication (fpoly-mul) and also exponentiation (fpoly-expt).
+Use these just like the standard functions + - * expt
+e.g. (fpoly-add #{1 + x^2} #{1 - y^2}) -> 2 + X^2 - Y^2
+
+There are also other functions for evaluation, substitution and simplification of polynomials
+
+* Matrices
+
+There are a set of functions for manipulating matrices of polynomials.
+
+* Interpolation
+
+The function lagrange-interpolate computes a polynomial which goes through a set of points.
+
+* libfpoly interface
+
+A set of CFFI bindings to the partner C library are also provided. The functions provided by
+the C library are a subset of those available in Lisp; it should be used only where speed
+is desired (and even then should be tested to ensure it really is faster).
+Lisp is the lead platform.
 
 
 Frank James

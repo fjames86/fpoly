@@ -282,6 +282,7 @@ Always choose the (absolute value) which is smaller of the two options"
 	p))
 	  
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val symbol))
+  "Change a variable name"
   (make-fpoly (mapcar (lambda (x)
 						(if (eq x var)
 							val
