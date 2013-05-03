@@ -17,7 +17,7 @@
 				 (:file "conditions" :depends-on ("package"))
 				 (:file "utils" :depends-on ("package" "conditions"))
 				 (:file "fpoly" :depends-on ("package" "utils" "conditions"))
-				 (:file "parser" :depends-on ("package" "utils" "fpoly"))
+				 (:file "parser" :depends-on ("package" "utils" "fpoly" "conditions"))
 				 (:file "operators" :depends-on ("package" "utils" "fpoly" "conditions"))
 				 (:file "matrices" :depends-on ("package" "utils"
 												"fpoly" "operators" "conditions"))
