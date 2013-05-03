@@ -11,7 +11,8 @@
 #include "utils.h"
 
 /* starting size of symbol stack */
-#define FPOLY_SYMBOLS 10
+#define FPOLY_SYMBOLS 5
+#define FPOLY_DEGREE 20
 
 typedef struct {
 	mpz_t *coeffs;
@@ -19,7 +20,12 @@ typedef struct {
 	int degree;
 	symbol *vars;
 	int nvars;
+
+	/* power lists */
+	int **powers;
 } fpoly;
+
+int *powers_table[FPOLY_SYMBOLS][FPOLY_DEGREE];
 
 /* call open/close before/after using any other function */
 void fpoly_open ();

@@ -15,7 +15,16 @@ void fpoly_open () {
 	for(i=0; i < MAX_FACTORIAL; ++i) {
 		mpz_init(factorial_table[i]);
 		mpz_fac_ui(factorial_table[i], i);
-	}	
+	}
+
+	/* populate the preallocated power list table */
+	for(i=0; i < FPOLY_SYMBOLS; i++) {
+		for(j=0; j < FPOLY_DEGREE; j++) {
+			powers_table[i][j] = (int*) malloc(sizeof(int)*i);
+			fpoly_gen_powers(powers_table[i], i, j);
+		}
+	}
+	
 }
 
 void fpoly_close () {
@@ -30,6 +39,14 @@ void fpoly_close () {
 		mpz_clear(factorial_table[i]);
 	}
 	free(factorial_table);
+
+	/* free the power list table */
+	for(i=0; i < FPOLY_SYMBOLS; i++) {
+		for(j=0; j < FPOLY_DEGREE; j++) {
+			free(powers_table[i][j]);
+		}
+	}	
+
 }
 
 /* ---------------- make the object ---------------- */
@@ -56,6 +73,13 @@ fpoly *make_fpoly(symbol *vars, int nvars, int degree) {
 		mpz_init (p->coeffs[i]);
 	}
 
+	if (nvars <= FPOLY_SYMBOLS && degree <= FPOLY_DEGREE) {
+		p->powers = powers_table[nvars][degree];
+	} else {
+		/* need to build up a custom table */
+		p->powers = NULL;
+	}
+	
 	return p;
 }
 
@@ -130,7 +154,17 @@ int offset(int nvars, int *powers) {
 	return base_offset(nvars, degree - 1) + power_offset(nvars, powers);
 }
 
+/* gen the power lists */
+
+void gen_power_list (int *powers, int nvars, int degree) {
+	if (nvars == 0) {
+		/* nothing */
+	} else if (degree == 0) {
 		
+
+	}
+}
+
 
 /* ----------------- getters and setters --------------------------------------- */
 
@@ -156,7 +190,8 @@ void fpoly_coeff_add_si (fpoly *p, int *powers, long int val) {
 
 /* ------------------------- printer ------------------------- */
 
-void print_fpoly (fpoly *p) {
+/* Print the poly in the Lisp-format for unreadable objects i.e. #< ...> */
+void print_fpoly_lisp (fpoly *p) {
 	int i;
 
 	printf("#<FPOLY :VARS ");
@@ -176,6 +211,59 @@ void print_fpoly (fpoly *p) {
 	}
 	
 	printf(")>");
+}
+
+void fprint_fpoly(FILE *stream, fpoly *p) {
+	int printed = 0;
+	symbol *vars;
+	int i;
+	mpz_t coeff;
+
+	mpz_init (coeff);
+	for(i=0; i < p->size; i++) {
+		/* get the coeff and powers of this coeffieint */
+		powers = p->powers[i];		
+		mpz_set (coeff, p->coeffs[offset(p->nvars, powers)]);
+		
+		if (mpz_zerop (coeff)) {
+			/* zero: do nothing */
+		} else {
+			if (mpz_negativep (coeff)) {
+				sign = -1;
+			} else {
+				sign = +1;
+			}
+
+			if (i == 0) {
+				mpz_printf(stream, coeff);
+			} else if (mpz_eql (coeff, -1)) {
+				if (!printed) {
+					fprintf (stream, " - ");
+				}
+			} else if (mpz_eql (coeff, +1)) {
+				/* nothing */
+			} else {
+				mpz_printf(stream, sign * coeff);
+			}
+
+			for(j=0; j < nvars; j++) {
+				if (powers[j] == 0) {
+					/* nothing */
+				} else if (powers[j] == 1) {
+					fprintf (stream, "%s", vars[j]);
+				} else {
+					fprintf (stream, "%s^%d", vars[j], powers[j]);
+				}
+			}
+			
+			printed = 1;
+		}
+	}
+
+	/* always print something, even just 0 */
+	if (!printed) {
+		fprintf(stream, "0");
+	}
 }
 
 /* ---------------------------------------- */
