@@ -72,23 +72,6 @@
 	   (format stream "~A~%" entry))
 	 (format stream "~%"))))
 
-(defun load-matrix (stream)
-  "Load a matrix. First line is the matrix size,
-each line afterwards contains the entry polynomial."
-  (let* ((size (parse-integer (read-line stream nil nil)))
-		 (mat (make-matrix size)))
-	(dotimes (row size)
-	  (dotimes (col size)
-		(setf (mat-entry mat col row) (parse-fpoly stream))))
-	mat))
-
-(defun load-vector (stream)
-  "Load a vector of polynomials, one on each line"
-  (let* ((size (parse-integer (read-line stream nil nil)))
-		 (vec (make-array size)))
-	(dotimes (i size)
-	  (setf (svref vec i) (parse-fpoly stream)))
-	vec))
 
 ;; ------ various useful functions ------------
 

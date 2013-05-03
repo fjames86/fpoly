@@ -167,3 +167,60 @@
 
 
 							  
+
+;;;; ------------- matrices
+
+(defun read-vector (stream)
+  "Read in a vector of format {poly, poly, ...}"
+  (read-until (complement #'whitespacep) stream)
+  (let ((open-brace (read-char stream nil nil)))
+	(cond
+	  ((null open-brace)
+	   nil)
+	  ((char-equal open-brace #\{)
+	   (mapcar (lambda (s)
+				 (parse-fpoly-string s))
+			   (remove-if (lambda (substr)
+							(string-equal substr ","))
+						  (string-split (read-until (lambda (c)
+													  (char-equal c #\}))
+													stream)
+										","))))
+	  (t (error 'fpoly-error
+				:place "READ-VECTOR"
+				:data (format nil "Unexpected character ~A found in vector." open-brace))))))
+
+	  
+(defun read-matrix (stream)
+  "Read in a matrix of format {{entry, entry, ...}, ...}"
+  (read-until (complement #'whitespacep) stream)
+  (let ((open-brace (read-char stream nil nil)))
+	(cond
+	  ((null open-brace) nil)
+	  ((char-equal open-brace #\{)
+	   (labels ((rec (rows)
+				  (let ((row (read-vector stream)))
+					(read-char stream nil nil)
+					(read-until (complement #'whitespacep) stream)
+					(let ((c (read-char stream nil nil)))
+					(cond
+					  ((null c)
+					   ;; end of file
+					   (append rows (list row)))
+					  ((char-equal c #\,)
+					   ;; at least one more row
+					   (rec (append rows (list row))))
+					  ((char-equal c #\})
+					   ;; closing brace
+					   (append rows (list row)))
+					  (t (error 'fpoly-error
+								:place "READ-MATRIX"
+								:data (format nil
+											  "Unexpected character ~A found whilst reading matrix" c))))))))
+		 (rec nil)))
+	  (t (error 'fpoly-error
+				:place "READ-MATRIX"
+				:data (format nil "Unexpected character ~A found whilst reading matrix" open-brace))))))
+
+		 
+

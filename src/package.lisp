@@ -42,8 +42,6 @@
 		   #:ffge
 		   #:det
 		   #:fpoly-det
-		   #:load-matrix
-		   #:load-vector
 		   
 		   ;; interpolate
 		   #:lagrange-interpolate
@@ -52,6 +50,8 @@
 		   ;; parsing
 		   #:parse-fpoly
 		   #:parse-fpoly-string
+		   #:read-vector
+		   #:read-matrix
 		   ))
 
 

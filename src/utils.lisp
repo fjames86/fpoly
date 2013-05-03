@@ -120,11 +120,8 @@ arguments."
 					  nil
 					  (map 'string #'identity (nreverse acc))))
 				 ((funcall predicate c)
-				  (if (null acc)
-					  (string c)
-					  (progn
-						(unread-char c stream)
-						(map 'string #'identity (nreverse acc)))))
+				  (unread-char c stream)
+				  (map 'string #'identity (nreverse acc)))
 				 (t (rec (cons c acc)))))))
 	(rec nil)))
 
