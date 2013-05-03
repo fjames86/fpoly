@@ -69,7 +69,9 @@
 			 c)			
 			(t
 			 ;; invalid characters
-			 (error "*** read-next-word: Invalid character ~A encountered in stream" c))))))
+			 (error 'fpoly-error
+					:place "READ-NEXT-WORD"
+					:data (format nil "Invalid character ~A encountered in stream." c)))))))
 
   (defun unread-next-word (word)
 	"Allows peeking of tokens"
@@ -85,9 +87,13 @@
 				  ;; eof, expecting to find a closing paren?
 				  (cond
 					(recursive
-					 (error "*** parse-fpoly: unmatched paren found"))
+					 (error 'fpoly-error
+							:place "PARSE-FPOLY"
+							:data "Unmatched paren found."))
 					(closing-brace
-					 (error "*** parse-fpoly: no closing brace"))
+					 (error 'fpoly-error
+							:place "PARSE-FPOLY"
+							:data "EOF before closing brace."))
 					(t acc)))
 				 ((numberp word)
 				  (build-monomial (fpoly-mul word acc)))
@@ -122,18 +128,26 @@
 				  (if recursive
 					  ;; expecting to hit one
 					  acc
-					  (error "*** parse-fpoly: unexpected closing paren")))
+					  (error 'fpoly-error
+							 :place "PARSE-FPOLY"
+							 :data "Unexpected closing paren.")))
 				 ((char-equal word #\})
 				  (if closing-brace
 					  ;; looking for a closing brace }
 					  ;; this happens if using a reader macro
 					  (if (not recursive)
 						  acc
-						  (error "*** parse-fpoly: unmatched paren"))
-					  (error "*** parse-fpoly: invalid character }")))
+						  (error 'fpoly-error
+								 :place "PARSE-FPOLY"
+								 :data "Unmatched paren."))
+					  (error 'fpoly-error
+							 :place "PARSE-FPOLY"
+							 :data "Invalid character } found.")))
 				 (t
 				  ;; unmatched case, must be an error
-				  (error "*** parse-fpoly: unable to parse from stream"))))))
+				  (error 'fpoly-error
+						 :place "PARSE-FPOLY"
+						 :data (format nil "Unable to parse ~A from stream." word)))))))
 	(build-monomial 1)))
 
 (defun parse-fpoly-string (string)

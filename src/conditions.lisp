@@ -14,12 +14,12 @@
    (data :reader fpoly-error-data :initarg :data))
   (:report (lambda (condition stream)
 			 (format stream
-					 "fpoly error ~A at ~A."
+					 "FPOLY-ERROR: ~A at ~A."
 					 (fpoly-error-data condition)
 					 (fpoly-error-place condition))))
   (:documentation "This error is thrown when an error occurs in FPOLY"))
 
-
+  
 
 
 		   
