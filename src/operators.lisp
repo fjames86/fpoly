@@ -316,9 +316,13 @@ Always choose the (absolute value) which is smaller of the two options"
 	vars))
 
 (defmethod fpoly-simplify ((poly fpoly))
-  (let ((p (make-fpoly (involved-vars poly)
-					   (highest-degree poly))))
-	p))
+  (let ((vars (involved-vars poly))
+		(degree (highest-degree poly)))
+	(let ((p (make-fpoly vars degree)))
+	  (docoeffs (p coeff powers)
+		(let ((pws (project-powers vars powers (fpoly-vars poly))))
+		  (setf coeff (if pws (apply #'fpoly-coeff poly pws) 0))))
+	  p)))
 
 	  
 ;;; ------------
