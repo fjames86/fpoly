@@ -18,101 +18,101 @@
 				 (make-fpoly vars degree coeffs)
 				 nil)))))))
 
-;; -----------------------------------------
+;;;; -----------------------------------
 
+(defun whitespacep (char)
+  (and (characterp char)
+	   (member char '(#\space #\newline #\return #\tab)
+			   :test #'char-equal)))
 
-(defun remove-whitespace (string)
-  "Remove all whitespace characters"
-  (remove-if (lambda (c)
-			   (some (lambda (d)
-					   (char-equal c d))
-					 '(#\space #\newline #\return #\tab)))
-			 string))
+(defun read-digits (stream)
+  (labels ((rec (acc)
+			 (let ((c (read-char stream nil nil)))
+			   (cond
+				 ((null c) acc)
+				 ((digit-char-p c)
+				  (rec (cons c acc)))
+				 (t (unread-char c stream)
+					acc)))))
+	(concatenate 'string (nreverse (rec nil)))))
 
-(defun insert-mul-sign (string &key long-names)
-  "Insert * signs between numbers and symbols"
-  (with-output-to-string (s)
-	(labels ((rec (index prev)
-			   (if (= index (length string))
-				   s
-				   (let ((c (char string index)))
-					 (cond
-					   ((and (digit-char-p prev)
-							 (alpha-char-p c))
-						(princ #\* s)
-						(princ c s)
-						(rec (1+ index)
-							 c))
-					   ((and (not long-names)
-							 (> index 0)
-							 (alpha-char-p prev)
-							 (alpha-char-p c))
-						(princ #\* s)
-						(princ c s)
-						(rec (1+ index)
-							 c))
-					   (t (princ c s)
-						  (rec (1+ index)
-							   c)))))))
-	  (rec 0 #\a)))) 
+(let (prev)
+  (defun read-next-word (stream)
+	(if prev
+		(prog1 prev (setf prev nil))
+		(let ((c (read-char stream nil nil)))
+		  (cond
+			((null c)
+			 ;; eof
+			 nil)
+			((alpha-char-p c)
+			 ;; variable
+			 (intern (string-upcase (string c))))
+			((whitespacep c)
+			 ;; whitespace
+			 (read-next-word stream))
+			((digit-char-p c)
+			 ;; integer
+			 (unread-char c stream)
+			 (parse-integer (read-digits stream)))
+			((member c '(#\+ #\- #\( #\) #\* #\^))
+			 ;; special characters
+			 c)
+			(t
+			 ;; invalid characters
+			 (error "*** read-next-word: Invalid character ~A encountered in stream" c))))))
 
-(defun insert-powers (string)
-  "Insert ^1 to variables if not present"
-  (with-output-to-string (s)
-	(labels ((rec (index prev)
-			   (if (= index (length string))
-				   (if (alpha-char-p prev)
-					   (princ "^1" s))
-				   (let ((c (char string index)))
-					 (if (and (alpha-char-p c)
-							  (alpha-char-p prev))
-						 (princ "^1" s))
-					 (princ c s)
-					 (rec (1+ index) c)))))
-	  (rec 0 #\0))
-	s))
+  (defun unread-next-word (word)
+	(setf prev word)
+	word))
 
-(defun insert-coeff (string)
-  "Insert a 1* to the front of the string"
-  (with-output-to-string (s)
-	(if (alpha-char-p (char string 0))
-		(princ "1*" s))
-	(princ string s)
-	s))
+(defun parse-fpoly (stream &key recursive)
+  (labels ((build-monomial (acc)
+			 (let ((word (read-next-word stream)))
+			   (cond
+				 ((null word)
+				  ;; eof, expecting to find a closing paren?
+				  (if recursive
+					  (error "*** parse-fpoly: unmatched paren found")
+					  acc))
+				 ((numberp word)
+				  (build-monomial (fpoly-mul word acc)))
+				 ((symbolp word)
+				  ;; symbol found, does it have a ^power following it?
+				  (let ((next (read-next-word stream))
+						(power 1))
+					(if (and (characterp next)
+							 (char-equal next #\^))
+						(setf power (parse-integer (read-digits stream)))
+						(unread-next-word next))
+					(let ((p (make-fpoly word power)))
+					  (setf (fpoly-coeff p power) 1)
+					  (build-monomial (fpoly-mul acc p)))))
+				 ((char-equal word #\*)
+				  ;; multiplication
+				  (build-monomial acc))
+				 ((char-equal word #\+)
+				  ;; addition of new monomial
+				  (fpoly-add acc (build-monomial 1)))
+				 ((char-equal word #\-)
+				  ;; substraction of new monomial
+				  (fpoly-sub acc (build-monomial 1)))
+				 ((char-equal word #\()
+				  ;; opening paren, parse a new polynomial until it hits a closing paren
+				  (build-monomial (fpoly-mul acc (parse-fpoly stream :recursive t))))
+				 ((char-equal word #\))
+				  ;; hit a closing paren, expecting to?
+				  (if recursive
+					  ;; expecting to hit one
+					  acc
+					  (error "*** parse-fpoly: unexpected closing paren")))
+				 (t
+				  ;; unmatched case, must be an error
+				  (error "*** parse-fpoly: unable to parse from stream"))))))
+	(build-monomial 1)))
 
-	 
-(defun try-parse-integer (string)
-  "Parse an integer out of a string, returning nil if unable to"
-  (let* ((s (string-trim " " string))
-		 (len (length s)))
-	(multiple-value-bind (int n) (parse-integer s :junk-allowed t)
-	  (if (and int (= n len))
-		  int
-		  nil))))
-
-(defun parse-monomial (string)
-  "Format [coeff][*[var][^power]...], coeff=power=1 by default"
-  (let ((tokens (string-split (insert-mul-sign (insert-powers (insert-coeff (remove-whitespace string))))
-							  " ^*")))
-	(let ((coeff (try-parse-integer (car tokens)))
-		  (bindings (mapcar (lambda (var-power)
-							  (cons (intern (string-upcase (cadr var-power)))
-									(try-parse-integer (cadddr var-power))))
-							(group-by (cdr tokens) 4))))
-	  (let ((vars (mapcar #'car bindings))
-			(powers (mapcar #'cdr bindings)))
-		(let ((p (make-fpoly vars (reduce #'+ powers))))
-		  (setf (apply #'fpoly-coeff p powers) coeff)
-		  p)))))
-
-(defun parse-fpoly (stream)
-  "Parse a polynomial from the stream"
-  (let ((string (loop for line = (read-line stream nil nil)
-					 while line collecting line into lines
-					 return (apply #'concatenate 'string lines))))
-	(let ((monomial-substrs (string-split string "()")))
-	  monomial-substrs)))
-
-
+(defun parse-fpoly-string (string)
+  (with-input-from-string (s string)
+	(parse-fpoly s)))
 
 
