@@ -56,11 +56,10 @@
 						 (if (= j i)
 							 monomials
 							 (nth j m))))))
-	(reduce #'fpoly-add
-			(mapcar (lambda (d val)
-					  (fpoly-mul (fpoly-div d delta) val))
-					(mapcar #'fpoly-det mats)
-					vals))))
+	(fpoly-sum (mapcar (lambda (d val)
+						 (fpoly-mul (fpoly-div d delta) val))
+					   (mapcar #'fpoly-det mats)
+					   vals))))
 
 (defun lagrange-interpolate-matrix (vars points mats degree)
   "Interpolate all the entries in the list of matrices"
