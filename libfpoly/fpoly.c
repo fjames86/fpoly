@@ -147,11 +147,11 @@ void set_fpoly_coeff_si (fpoly *p, int *powers, long int val) {
 }
 
 void fpoly_coeff_add (fpoly *p, int *powers, mpz_t val) {
-	mpz_add(p->coeffs[offset(p->nvars, powers)], val);
+	mpz_add(p->coeffs[offset(p->nvars, powers)], p->coeffs[offset(p->nvars, powers)], val);
 }
 
 void fpoly_coeff_add_si (fpoly *p, int *powers, long int val) {
-	mpz_add_si(p->coeffs[offset(p->nvars, powers)], val);
+	mpz_add_si(p->coeffs[offset(p->nvars, powers)], p->coeffs[offset(p->nvars, powers)], val);
 }
 
 /* ------------------------- printer ------------------------- */

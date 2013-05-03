@@ -31,7 +31,7 @@ Note that the parser can only cope with single-character variable names.
 This is due to the ambiguity of terms like "xyz", is this equal to multplying three variables,
 X, Y, Z or two variables XY, Z etc. If long names are required then they have to be set
 by a substitute call, e.g. we want 1 + <foo>^2 so we do
-(fpoly-substitute 'x 'foo #{1 + 2x^2}) -> #<FPOLY :VARS (FOO) :DEGREE 2 :COEFFS #(1 0 2)>
+(princ (fpoly-substitute 'x 'foo #{1 + 2x^2})) 1 + 2*X^2
 
 * Operations
 

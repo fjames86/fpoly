@@ -26,6 +26,12 @@
 (princ fp-big)
 
 
+;; use the read macro
+(defvar fp4 #{1 + 2x^2})
+
+(fpoly-expt fp4 2)
+
+
 
 
 
