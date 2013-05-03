@@ -29,12 +29,12 @@ Create polynomial objects with the (make-fpoly <vars> <degree>) function. This r
 a polynomials in the variables and degree specified, with all coeffieients set to zero.
 You may then set coeffients using (setf (fpoly-coeff ...) Val) e.g.
 
-(defvar p (make-fpoly '(x y) 2)) ; in X,Y of degree 2
-(setf (fpoly-coeff poly 1 1) 2) ; set the coeff in front of the XY term to 2
+(defvar p (make-fpoly '(x y) 2))  in X,Y of degree 2
+(setf (fpoly-coeff poly 1 1) 2)   set the coeff in front of the XY term to 2
 
 There is a reader macro defined for convenience, #{ },
 allowing entering of human readable format polynomials, e.g.
-#{1 + 2x^2} -> 1 + 2X^2 ;; equivalent to (make-fpoly 'X 2 '(1 0 2))
+#{1 + 2x^2} -> 1 + 2X^2   equivalent to (make-fpoly 'X 2 '(1 0 2))
 
 Note that the parser can only cope with single-character variable names.
 This is due to the ambiguity of terms like "xyz", is this equal to multplying three variables,
