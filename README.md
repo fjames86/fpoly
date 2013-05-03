@@ -15,9 +15,8 @@ There is now a small C library of functions which mirror the Lisp routines. Thes
 will allow inter-operation between the nice and easy to use Lisp front-end and a more
 efficient C library for operations if speed is required.
 
-To use the C library, first make it using the provided Makefile (note: libfpoly does
-not currently use all *.c files in the libfpoly directory).
-See examples/ffi-example.lisp for an example of it in use.
+To use the C library, first make it using the provided Makefile
+See examples/ffi-example.lisp and libfpoly/fpoly_test.c for an example of it in use.
 
 
 Getting started
@@ -28,7 +27,6 @@ Getting started
 Create polynomial objects with the (make-fpoly <vars> <degree>) function. This returns
 a polynomials in the variables and degree specified, with all coeffieients set to zero.
 You may then set coeffients using (setf (fpoly-coeff ...) Val) e.g.
-
 <br> (defvar p (make-fpoly '(x y) 2))  in X,Y of degree 2
 <br> (setf (fpoly-coeff poly 1 1) 2)   set the coeff in front of the XY term to 2
 
@@ -49,8 +47,8 @@ Note also that the parser is robust enough to cope with nested subexpressions, e
 * Operations
 
 There are functions for the standard arithmetic operations addition (fpoly-add) subtraction (fpoly-sub), multiplication (fpoly-mul) and also exponentiation (fpoly-expt).
-Use these just like the standard functions + - * expt
-<br> e.g. (fpoly-add \#{1 + x^2} \#{1 - y^2}) -> 2 + X^2 - Y^2
+Use these just like the standard functions + - * expt, e.g.
+<br> (fpoly-add \#{1 + x^2} \#{1 - y^2}) -> 2 + X^2 - Y^2
 
 There are also other functions for evaluation, substitution and simplification of polynomials
 
@@ -70,5 +68,7 @@ is desired (and even then should be tested to ensure it really is faster).
 Lisp is the lead platform.
 
 
+<br>
+<br>
 Frank James
 
