@@ -163,7 +163,10 @@
  #\# #\{
  (lambda (stream char1 char2)
    (declare (ignore char1 char2))
-   (parse-fpoly stream :closing-brace t)))
+   (let ((p (parse-fpoly stream :closing-brace t)))
+	 (if (numberp p)
+		 (make-fpoly nil 0 (list p))
+		 p))))
 
 
 							  

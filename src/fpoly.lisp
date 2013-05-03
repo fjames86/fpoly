@@ -190,7 +190,7 @@ Returns zero if this is outside the array"
 				 vars powers)
 		   (setf printed t)))))
 	(if (not printed)
-		(print 0))))
+		(princ 0 stream))))
 
 ;; generic method for lisp printer. will print "nicely" for princ or format ~A 
 (defmethod print-object ((p fpoly) stream)
