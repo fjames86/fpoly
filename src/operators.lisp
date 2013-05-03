@@ -281,6 +281,14 @@ Always choose the (absolute value) which is smaller of the two options"
 		(incf (apply #'fpoly-coeff p p-powers) (* coeff var-val))))
 	p))
 	  
+(defmethod fpoly-substitute ((poly fpoly) (var symbol) (val symbol))
+  (make-fpoly (mapcar (lambda (x)
+						(if (eq x var)
+							val
+							x))					  
+					  (fpoly-vars poly))
+			  (fpoly-degree poly)
+			  (copy-array (fpoly-coeffs poly))))
 
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val fpoly))
   "Substitute a variable for a polynomial"

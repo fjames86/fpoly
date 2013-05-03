@@ -90,7 +90,6 @@ each line afterwards contains the entry polynomial."
 	  (setf (svref vec i) (parse-fpoly stream)))
 	vec))
 
-		 
 ;; ------ various useful functions ------------
 
 (defun matrix-modulo (mat n)
