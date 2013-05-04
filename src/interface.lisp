@@ -23,6 +23,18 @@
 
 ;;; --------------- C function definitions -------------------
 
+(defcfun ("fpoly_open" libfpoly-open) :void)
+
+(defcfun ("fpoly_close" libfpoly-close) :void)
+
+(defcfun ("make_fpoly" libfpoly-make-fpoly) :pointer
+  (nvars :int)
+  (vars :pointer)
+  (degree :int))
+
+(defcfun ("intern" libfpoly-intern) :pointer
+  (str :pointer))
+
 (defcfun ("ffge" libfpoly-ffge) :int
   (mat :pointer)
   (vec :pointer)
@@ -46,6 +58,14 @@
 (defun maref (row col n)
   (+ (* col n) row))
 
+(defun %fpoly-open ()
+  "Call before any other functions."
+  (libfpoly-open))
+
+(defun %fpoly-close ()
+  "Free all foreign memory allocted."
+  (libfpoly-close))
+	
 (defun %ffge (matrix vector)
   "Wrapper for C library FFGE function"
   (let ((n (array-dimension vector 0)))
@@ -93,6 +113,8 @@
 				   (setf (aref m j k) (mem-aref mats :int (+ (* i n n) (maref j k n)))))
 				 (setf (svref v j) (mem-aref vecs :int (+ (* i n) j))))
 			   (list m v)))))))
+
+
 
 								 
 					   

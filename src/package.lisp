@@ -11,7 +11,6 @@
 		   #:fpoly-degree
 		   #:fpoly-coeffs
 		   #:fpoly-coeff
-		   #:parse-fpoly
 		   
 		   ;; operators
 		   #:fpoly-add
@@ -30,15 +29,18 @@
 		   
 		   ;; matrices
 		   #:make-matrix
-		   #:mat-entry
+		   #:mat-size
 		   #:doentries
 		   #:mapmatrix
+		   #:mat-list
+		   #:list-mat
 		   #:matrix-modulo
 		   #:eval-matrix
 		   #:choose-primes
 		   #:choose-bindings
 		   #:generate-matrices
 		   #:print-matrices
+		   #:print-matrix-mma
 		   #:ffge
 		   #:det
 		   #:fpoly-det
@@ -52,10 +54,18 @@
 		   #:parse-fpoly-string
 		   #:read-vector
 		   #:read-matrix
+		   #:load-vector
+		   #:load-matrix 
 		   ))
 
 
 (defpackage #:fpoly-ffi
   (:use #:cl #:cffi)
-  (:export #:%ffge))
+  (:export #:load-fpoly
+		   #:%fpoly-open
+		   #:%fpoly-close
+		   #:%make-fpoly
+		   #:%ffge))
+
+
 

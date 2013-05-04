@@ -8,70 +8,31 @@
 
 ;; ---------------------------
 
-(defclass matrix ()
-  ((entries :reader mat-entries :writer set-mat-entries :initarg :entries)
-   (size :reader mat-size :initarg :n)))
+(defun make-matrix (n)
+  (make-array (list n n)))
 
-(defun make-matrix (n &optional entries)
-  (let ((m (make-instance 'matrix
-						  :n n
-						  :entries (cond
-									 ((arrayp entries) entries)
-									 ((null entries)
-									  (make-array (list n n)
-												  :initial-element 0))
-									 ((listp entries)
-									  (make-array (list n n)
-												  :initial-contents entries))
-									 (t (make-array (list n n) :initial-contents 0))))))
-	m))
-
-(defun mat-entry (matrix i j)
-  (aref (mat-entries matrix) i j))
-
-(defun (setf mat-entry) (val matrix i j)
-  (let ((e (mat-entries matrix)))
-	(setf (aref e i j) val)
-	(set-mat-entries e matrix)
-	matrix))
+(defun mat-size (matrix)
+  (array-dimension matrix 0))
 
 (defmacro doentries ((matrix entry-var &optional col row) &body body)
   (let ((gm (gensym "MATRIX"))
 		(gi (if col col (gensym "COL")))
 		(gj (if row row (gensym "ROW")))
-		(gentries (gensym "ENTRIES"))
 		(gsize (gensym "SIZE")))
 	`(let* ((,gm ,matrix)
-			(,gsize (mat-size ,gm))
-			(,gentries (mat-entries ,gm)))
+			(,gsize (mat-size ,gm)))
 	   (dotimes (,gi ,gsize)
 		 (dotimes (,gj ,gsize)
-		   (symbol-macrolet ((,entry-var (aref ,gentries ,gi ,gj)))
+		   (symbol-macrolet ((,entry-var (aref ,gm,gi ,gj)))
 			 ,@body)))
 	   ,gm)))
-
 
 (defun mapmatrix (function matrix)
   "Map a function over the entries of a matrix, returning a new matrix"
   (let ((new (make-matrix (mat-size matrix))))
 	(doentries (new entry col row)
-	  (setf entry (funcall function (mat-entry matrix col row))))	
+	  (setf entry (funcall function (aref matrix col row))))
 	new))
-
-(defmethod print-object ((mat matrix) stream)
-  (cond
-	(*print-escape*
-	 (print-unreadable-object (mat stream :type t)
-	   (format stream ":SIZE ~A :ENTRIES ~A" (mat-size mat)
-			   (loop for i below (mat-size mat) collect
-					(loop for j below (mat-size mat) collect
-						 (mat-entry mat i j))))))
-	(t
-	 (format stream "~A~%" (mat-size mat))
-	 (doentries (mat entry)
-	   (format stream "~A~%" entry))
-	 (format stream "~%"))))
-
 
 ;; ------ various useful functions ------------
 
@@ -159,6 +120,20 @@ then evaluate each of these at some points"
 		  mats))
   'ok)
 
+(defun print-matrix-mma (stream matrix)
+  "Print a matrix in mathematica format, {{poly, ...}, ...}"
+  (princ "{" stream)
+  (dotimes (i (mat-size matrix))
+	(if (> i 0) (princ ", " stream))
+	(dotimes (j (mat-size matrix))
+	  (if (> j 0) (princ ", " stream))
+	  (princ (aref matrix i j) stream))
+	(princ "}" stream))
+  (princ "}" stream)
+  t)
+
+
+	  
 ;; -----------------------------------------------
 ;; don't need these anymore, keep them in for the moment but don't export
 
@@ -297,11 +272,17 @@ return (list NIL NIL)"
 ;; ----------------------
 
 (defun mat-list (mat)
-  "Convert a matrix to nested lists"
-  (let ((n (array-dimension mat 0)))
+  "Convert a matrix to nested lists."
+  (let ((n (mat-size mat)))
 	(loop for i below n collect
 		 (loop for j below n collect
 			  (aref mat i j)))))
+
+(defun list-mat (mlist)
+  "Convert nested lists to an array."
+  (let ((n (length mlist)))
+	(make-array (list n n)
+				:initial-contents mlist)))
 
 (defun sub-mat (terms i j)
   (loop with r = 0

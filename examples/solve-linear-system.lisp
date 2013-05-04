@@ -8,14 +8,8 @@
 
 (in-package #:solve-linear-system)
 
-
-
-
-(defun solve-system (matfile vecfile)
-  (let* ((mat (with-open-file (f matfile :direction :input) (load-matrix f)))
-		 (vec (with-open-file (f vecfile :direction :input) (load-vector f))))
-	(assert (= (mat-size mat) (array-dimension vec 0)))
-	(
+(defvar mymat (load-matrix "../examples/test-mat.dat"))
+(defvar myvec (load-vector "../examples/test-vec.dat"))
 
 
 

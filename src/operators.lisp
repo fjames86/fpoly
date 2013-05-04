@@ -251,13 +251,15 @@ Always choose the (absolute value) which is smaller of the two options"
 								   var-vals powers))))
 
 (defmethod fpoly-eval ((poly fpoly) bindings)
+  "Evaluate a polynomial with bindings an assoc list of (var . value) pairs.
+The values may be other polynomials or numbers."
   (let ((sum 0)
 		(vals (mapcar #'cdr bindings)))
 	(docoeffs (poly coeff powers)
 	  (fpoly-incf sum (fpoly-eval-monomial vals powers coeff)))
 	sum))
 
-;; -------------
+;; ------------- copying ------------------------
 
 (defmethod fpoly-copy ((poly number))
   poly)
@@ -268,7 +270,7 @@ Always choose the (absolute value) which is smaller of the two options"
 			  (copy-seq (fpoly-coeffs poly))))
 
 
-;; ----------------------
+;; ------------ substitute --------------------------
 
 (defmethod fpoly-substitute ((poly fpoly) (var symbol) (val number))
   "Substitute a variable for a number"
@@ -300,7 +302,7 @@ Always choose the (absolute value) which is smaller of the two options"
 							(cons v v)))
 					  (fpoly-vars poly))))
 
-;; -------------------------
+;; ----------------- simplification ---------------------
 
 (defun highest-degree (poly)
   "Find the highest degree of the non-zero coefficients"
@@ -325,6 +327,7 @@ Always choose the (absolute value) which is smaller of the two options"
 	vars))
 
 (defmethod fpoly-simplify ((poly fpoly))
+  "Return a new polynomial with the minimal variables and degree possible."
   (let ((vars (involved-vars poly))
 		(degree (highest-degree poly)))
 	(let ((p (make-fpoly vars degree)))
@@ -334,13 +337,15 @@ Always choose the (absolute value) which is smaller of the two options"
 	  p)))
 
 	  
-;;; ------------
+;;; ------------ reducers -------------------------
 
 ;; reducer
-;; used for summing/multiplying a set of polynomial objects
+;; used for summing a set of polynomial objects
+;;
 
 (defun fpoly-sum (polys)
-  "Efficiently sum a set of polynomials. Equivalent to (apply #'reduce #'fpoly-add poly polys)"
+  "Efficiently sum a list of polynomials.
+Equivalent to (apply #'reduce #'fpoly-add poly polys) but faster and conses less."
   (let ((vars (reduce #'merge-vars (mapcar #'fpoly-vars polys)))
 		(degree (apply #'max (mapcar #'fpoly-degree polys))))
 	(let ((p (make-fpoly vars degree)))
@@ -348,6 +353,10 @@ Always choose the (absolute value) which is smaller of the two options"
 		(setf coeff
 			  (loop for ply in polys sum
 				   (let ((pws (project-powers vars powers (fpoly-vars ply))))
-					 (if pws (apply #'fpoly-coeff ply pws) 0)))))
+					 (if pws
+						 (apply #'fpoly-coeff ply pws)
+						 0)))))
 	  p)))
+
+;;; ---------------------------------------
 
