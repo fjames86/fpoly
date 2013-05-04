@@ -32,20 +32,23 @@
 		   #:mat-size
 		   #:doentries
 		   #:mapmatrix
-		   #:mat-list
-		   #:list-mat
-		   #:vec-list
-		   #:list-vec
+		   #:combine-mat-vec
+		   #:destructure-matrix
+		   
 		   #:matrix-modulo
 		   #:eval-matrix
+
 		   #:choose-primes
 		   #:choose-bindings
 		   #:generate-matrices
+		   
 		   #:print-matrices
 		   #:print-matrix-mma
-		   #:ffge
+
+		   #:echelon
 		   #:det
 		   #:fpoly-det
+		   #:invert
 		   
 		   ;; interpolate
 		   #:lagrange-interpolate
@@ -56,7 +59,6 @@
 		   #:parse-fpoly-string
 		   #:read-vector
 		   #:read-matrix
-		   #:load-vector
 		   #:load-matrix 
 		   ))
 

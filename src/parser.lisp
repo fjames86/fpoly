@@ -241,15 +241,16 @@
 				:data (format nil "Unexpected character ~A found whilst reading matrix" open-brace))))))
 
 
-(defun load-vector (filename)
-  "Read in a vector from a file"
-  (with-open-file (f filename :direction :input)
-	(read-vector f)))
-
 (defun load-matrix (filename)
-  "Read in a matrix from a file"
+  "Read in a matrix from a file. Expects an (n+1) x n matrix."
   (with-open-file (f filename :direction :input)
-	(read-matrix f)))
+	(let ((mlist (read-matrix f)))
+	  (let ((n (length mlist)))
+		(let ((m (make-array (list n (1+ n))
+							 :initial-contents mlist)))
+		  m)))))
+
+		
 
 
 

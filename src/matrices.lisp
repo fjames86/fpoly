@@ -1,4 +1,3 @@
-
 ;;;;
 ;;;; Defines a set of functions for manipulating matrices of polynomials,
 ;;;; and also some other useful functions.
@@ -9,7 +8,7 @@
 ;; ---------------------------
 
 (defun make-matrix (n)
-  (make-array (list n n)))
+  (make-array (list n (1+ n))))
 
 (defun mat-size (matrix)
   (array-dimension matrix 0))
@@ -22,8 +21,8 @@
 	`(let* ((,gm ,matrix)
 			(,gsize (mat-size ,gm)))
 	   (dotimes (,gi ,gsize)
-		 (dotimes (,gj ,gsize)
-		   (symbol-macrolet ((,entry-var (aref ,gm,gi ,gj)))
+		 (dotimes (,gj (1+ ,gsize))
+		   (symbol-macrolet ((,entry-var (aref ,gm ,gi ,gj)))
 			 ,@body)))
 	   ,gm)))
 
@@ -50,6 +49,16 @@
 					 (fpoly-mod val prime)
 					 val)))
 	         mat))
+
+(defun eval-vector (vec bindings &key prime)
+  "Evaluate each entry in the vector"
+  (make-array (array-dimension vec 0)
+			  :initial-contents
+			  (loop for i below (array-dimension vec 0)
+				   collect (let ((val (fpoly-eval x bindings)))
+							 (if prime
+								 (fpoly-mod val prime)
+								 val)))))
 
 (let ((prime-list (primes 1000)))
   (defun choose-primes (mat &key (lowest-prime 5))
@@ -104,7 +113,6 @@ then evaluate each of these at some points"
 		(bindings (choose-bindings mat)))
 	(values
 	 (mapcar (lambda (prime)
-			   (format t "prime: ~A~%" prime)
 			   (mapcar (lambda (binding)
 						 (eval-matrix (matrix-modulo mat prime)
 									  binding
@@ -127,7 +135,7 @@ then evaluate each of these at some points"
 (defun print-matrix-mma (stream matrix)
   "Print a matrix in mathematica format, {{poly, ...}, ...}"
   (princ "{" stream)
-  (dotimes (i (mat-size matrix))
+  (dotimes (i (1+ (mat-size matrix)))
 	(if (> i 0) (princ ", " stream))
 	
 	(princ "{" stream)
@@ -137,40 +145,35 @@ then evaluate each of these at some points"
 	(princ "}" stream))
   
   (princ "}" stream)
-  t)
+  nil)
 
-
-	  
-;; -----------------------------------------------
-;; don't need these anymore, keep them in for the moment but don't export
-
-(defun make-mat-arrays (mat)
-  "Convert a list format matrix into arrays"
-  (let (a b)
-	(do ((rows mat (cdr rows)))
-		((null rows))
-	  (push nil a)
-	  (do ((row (car rows) (cdr row)))
-		  ((null row))
-		(if (null (cdr row))
-			(setf b (append b (list (car row))))
-			(setf (car a) (append (car a) (list (car row)))))))
-	(let ((n (length b)))
-	  (values (make-array (list n n) :initial-contents (nreverse a))
-			  (make-array n :initial-contents b)))))
-
-(defun make-mat-from-arrays (a b)
-  "Convert arrays into a list format matrix"
-  (let ((n (array-dimension b 0))
-		(mat nil))
-	(do ((i 0 (1+ i)))
-		((= i n))
-	  (do ((j 0 (1+ j))
-		   (row nil))
-		  ((= j n) (push (nreverse (cons (svref b i) row)) mat))
-		(push (aref a i j) row)))
-	(nreverse mat)))
 ;; ------------------- matrix reduction and inversion -----------------------------------
+
+(defun combine-mat-vec (mat vec)
+  "Combine a matrix and vector into an n+1 x n matrix."
+  (let ((n (array-dimension vec 0)))
+	(let ((m (make-matrix n)))
+	  (dotimes (i n)
+		(dotimes (j n)
+		  (setf (aref m i j) (aref mat i j)))
+		(setf (aref m i n) (svref vec i)))
+	  m)))
+
+(defun destructure-matrix (matrix)
+  "Destruture an n+1 x n matrix into a matrix and vector."
+  (let ((n (mat-size matrix)))
+	(let ((mat (make-array (list n n)))
+		  (vec (make-array n)))
+	  (dotimes (i n)
+		(dotimes (j n)
+		  (setf (aref mat i j) (aref matrix i j)))
+		(setf (svref vec i) (aref matrix i n)))
+	  (list mat vec))))
+					   
+(defun echelon (matrix)
+  "Reduce a matrix to echelon form, using the fraction free Gaussian elimination algorithm."
+  (destructuring-bind (mat vec) (destructure-matrix matrix)
+	(apply #'combine-mat-vec (ffge mat vec))))
 
 (defun ffge (mat vec)
   "Reduce a matrix of numbers to row-echelon form,

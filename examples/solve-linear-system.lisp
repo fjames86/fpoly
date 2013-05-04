@@ -8,10 +8,22 @@
 
 (in-package #:solve-linear-system)
 
-(defvar mymat (list-mat (load-matrix "../examples/test-mat.dat")))
-(defvar myvec (list-vec (load-vector "../examples/test-vec.dat")))
+(defvar mymat (load-matrix "../examples/test-mat.dat"))
+
+(multiple-value-bind (mat-lists primes bindings) (generate-matrices mymat)
+  (defvar mat-list mat-lists)
+  (defvar primes primes)
+  (defvar bindings bindings))
+
+(defvar solved-mats (mapcan (lambda (row v)
+							  (mapcar (lambda (m)
+										(ffge m v))
+									  row))
+							mat-list
+							vec-list))
 
 
+									 
 
 
 	  
