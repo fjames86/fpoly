@@ -104,9 +104,12 @@ then evaluate each of these at some points"
 		(bindings (choose-bindings mat)))
 	(values
 	 (mapcar (lambda (prime)
-			   (eval-matrix (matrix-modulo mat prime)
-							bindings
-							:prime prime))
+			   (format t "prime: ~A~%" prime)
+			   (mapcar (lambda (binding)
+						 (eval-matrix (matrix-modulo mat prime)
+									  binding
+									  :prime prime))
+					   bindings))
 			 primes)
 	 primes
 	 bindings)))
