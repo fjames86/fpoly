@@ -34,6 +34,8 @@
 		   #:mapmatrix
 		   #:mat-list
 		   #:list-mat
+		   #:vec-list
+		   #:list-vec
 		   #:matrix-modulo
 		   #:eval-matrix
 		   #:choose-primes

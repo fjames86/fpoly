@@ -125,10 +125,13 @@ then evaluate each of these at some points"
   (princ "{" stream)
   (dotimes (i (mat-size matrix))
 	(if (> i 0) (princ ", " stream))
+	
+	(princ "{" stream)
 	(dotimes (j (mat-size matrix))
 	  (if (> j 0) (princ ", " stream))
 	  (princ (aref matrix i j) stream))
 	(princ "}" stream))
+  
   (princ "}" stream)
   t)
 
@@ -283,6 +286,15 @@ return (list NIL NIL)"
   (let ((n (length mlist)))
 	(make-array (list n n)
 				:initial-contents mlist)))
+
+(defun vec-list (vector)
+  "Convert a vector to a list."
+  (let ((n (array-dimension vector 0)))
+	(loop for i below n collect (svref vector i))))
+
+(defun list-vec (list)
+  "Convert a list to a vector."
+  (make-array (length list) :initial-contents list))
 
 (defun sub-mat (terms i j)
   (loop with r = 0
