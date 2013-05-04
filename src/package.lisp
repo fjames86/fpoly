@@ -53,6 +53,7 @@
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix
+		   #:fpoly-chinese-remainder
 		   #:chinese-remainder-matrices
 		   
 		   ;; parsing

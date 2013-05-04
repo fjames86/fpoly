@@ -201,3 +201,30 @@ Returns zero if this is outside the array"
 		(princ "}" stream))
       (print-fpoly p stream)))
 
+;;; -------------
+
+(defun fpoly-chinese-remainder (polys nlist)
+  "Chinese remainder each coefficient of the polynomials provided."
+  (let ((vars (remove-duplicates (mapcan (lambda (poly)
+										   (if (fpoly? poly)
+											   (fpoly-vars poly)))
+										 polys)))
+		(degree 0))
+	(let ((p (make-fpoly vars degree)))
+	  (docoeffs (p coeff powers)
+		(setf coeff (chinese-remainder (mapcar (lambda (poly)
+												 (cond
+												   ((fpoly? poly)
+													(apply #'fpoly-coeff powers))
+												   ((zerop (reduce #'+ powers))
+													poly)
+												   (t 0)))
+											   polys)
+									   nlist)))
+													 
+	  p)))
+
+
+
+
+	
