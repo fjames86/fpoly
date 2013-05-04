@@ -215,13 +215,12 @@ Returns zero if this is outside the array"
 		(setf coeff (chinese-remainder (mapcar (lambda (poly)
 												 (cond
 												   ((fpoly? poly)
-													(apply #'fpoly-coeff powers))
+													(apply #'fpoly-coeff poly powers))
 												   ((zerop (reduce #'+ powers))
 													poly)
 												   (t 0)))
 											   polys)
 									   nlist)))
-													 
 	  p)))
 
 
