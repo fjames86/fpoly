@@ -75,3 +75,17 @@
 												  matrices)
 										  degree)))
 	  mat)))
+
+
+;;; -----------------
+
+
+(defun chinese-remainder-matrices (mats primes)
+  (let ((m (make-matrix (mat-size (car mats)))))
+	(doentries (m entry i j)
+	  (setf entry (chinese-remainder (mapcar (lambda (mat)
+								   (aref mat i j))
+								 mats)
+						 primes)))	
+	m))
+

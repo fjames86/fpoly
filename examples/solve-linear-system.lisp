@@ -21,9 +21,10 @@
 									  mats))
 							mat-list))
 
-(defvar interpolated-matrices (mapcar (lambda (mats binding)
-										(lagrange-interpolate-matrix mats binding 2))
-									  solved-mats bindings))
+(defvar interpolated-matrices (mapcar (lambda (mats)
+										(lagrange-interpolate-matrix mats bindings 1))
+									  solved-mats))
+
 
 
 
