@@ -346,15 +346,26 @@ The values may be other polynomials or numbers."
 (defun fpoly-sum (polys)
   "Efficiently sum a list of polynomials.
 Equivalent to (apply #'reduce #'fpoly-add poly polys) but faster and conses less."
-  (let ((vars (reduce #'merge-vars (mapcar #'fpoly-vars polys)))
-		(degree (apply #'max (mapcar #'fpoly-degree polys))))
+  (let ((vars (reduce #'merge-vars (mapcar (lambda (poly)
+											 (if (fpoly? poly)
+												 (fpoly-vars poly)))
+										   polys)))
+		(degree (apply #'max (mapcar (lambda (poly)
+									   (if (fpoly? poly)
+										   (fpoly-degree poly)
+										   0))
+									 polys))))
 	(let ((p (make-fpoly vars degree)))
 	  (docoeffs (p coeff powers)
 		(setf coeff
 			  (loop for ply in polys sum
-				   (let ((pws (project-powers vars powers (fpoly-vars ply))))
+				   (let ((pws (project-powers vars powers (if (fpoly? ply)
+															  (fpoly-vars ply)))))
+															  
 					 (if pws
-						 (apply #'fpoly-coeff ply pws)
+						 (if (fpoly? ply)
+							 (apply #'fpoly-coeff ply pws)
+							 0)
 						 0)))))
 	  p)))
 

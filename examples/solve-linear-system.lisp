@@ -15,12 +15,17 @@
   (defvar primes primes)
   (defvar bindings bindings))
 
-(defvar solved-mats (mapcan (lambda (row v)
-							  (mapcar (lambda (m)
-										(ffge m v))
-									  row))
-							mat-list
-							vec-list))
+(defvar solved-mats (mapcar (lambda (mats)
+							  (mapcar (lambda (mat)
+										(echelon mat))
+									  mats))
+							mat-list))
+
+(defvar interpolated-matrices (mapcar (lambda (mats binding)
+										(lagrange-interpolate-matrix mats binding 2))
+									  solved-mats bindings))
+
+
 
 
 									 
