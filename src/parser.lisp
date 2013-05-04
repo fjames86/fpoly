@@ -106,7 +106,12 @@
 						(power 1))
 					(if (and (characterp next)
 							 (char-equal next #\^))
-						(setf power (parse-integer (read-digits stream)))
+						(let ((digits (read-digits stream)))
+						  (if (zerop (length digits))
+							  (error 'fpoly-error
+									 :place "PARSE-FPOLY"
+									 :data "Integer power expected after ^ sign.")
+							  (setf power (parse-integer digits))))
 						(unread-next-word next))
 					(let ((p (make-fpoly word power)))
 					  (setf (fpoly-coeff p power) 1)
@@ -216,24 +221,35 @@
 					(read-char stream nil nil)
 					(read-until (complement #'whitespacep) stream)
 					(let ((c (read-char stream nil nil)))
-					(cond
-					  ((null c)
-					   ;; end of file
-					   (append rows (list row)))
-					  ((char-equal c #\,)
-					   ;; at least one more row
-					   (rec (append rows (list row))))
-					  ((char-equal c #\})
-					   ;; closing brace
-					   (append rows (list row)))
-					  (t (error 'fpoly-error
-								:place "READ-MATRIX"
-								:data (format nil
-											  "Unexpected character ~A found whilst reading matrix" c))))))))
+					  (cond
+						((null c)
+						 ;; end of file
+						 (append rows (list row)))
+						((char-equal c #\,)
+						 ;; at least one more row
+						 (rec (append rows (list row))))
+						((char-equal c #\})
+						 ;; closing brace
+						 (append rows (list row)))
+						(t (error 'fpoly-error
+								  :place "READ-MATRIX"
+								  :data (format nil
+												"Unexpected character ~A found whilst reading matrix" c))))))))
 		 (rec nil)))
 	  (t (error 'fpoly-error
 				:place "READ-MATRIX"
 				:data (format nil "Unexpected character ~A found whilst reading matrix" open-brace))))))
 
-		 
+
+(defun load-vector (filename)
+  "Read in a vector from a file"
+  (with-open-file (f filename :direction :input)
+	(read-vector f)))
+
+(defun load-matrix (filename)
+  "Read in a matrix from a file"
+  (with-open-file (f filename :direction :input)
+	(read-matrix f)))
+
+
 
