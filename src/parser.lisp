@@ -66,7 +66,7 @@
 			 (parse-integer (read-digits stream)))
 			((member c '(#\+ #\- #\( #\) #\* #\^ #\}))
 			 ;; special characters
-			 c)			
+			 c)
 			(t
 			 ;; invalid characters
 			 (error 'fpoly-error
@@ -79,8 +79,8 @@
 	word))
 
 (defun parse-fpoly (stream &key recursive closing-brace)
-  "Parse an fpoly object from the stream. The recursive keyword arg is for internal use only"
-  (labels ((build-monomial (acc)
+  "Parse an fpoly object from the stream. Keyword args are for internal use only."
+  (labels ((build-monomial (acc nterms)
 			 (let ((word (read-next-word stream)))
 			   (cond
 				 ((null word)
@@ -94,9 +94,12 @@
 					 (error 'fpoly-error
 							:place "PARSE-FPOLY"
 							:data "EOF before closing brace."))
-					(t acc)))
+					(t
+					 (if (zerop nterms)
+						 0
+						 acc))))
 				 ((numberp word)
-				  (build-monomial (fpoly-mul word acc)))
+				  (build-monomial (fpoly-mul word acc) (1+ nterms)))
 				 ((symbolp word)
 				  ;; symbol found, does it have a ^power following it?
 				  (let ((next (read-next-word stream))
@@ -107,27 +110,34 @@
 						(unread-next-word next))
 					(let ((p (make-fpoly word power)))
 					  (setf (fpoly-coeff p power) 1)
-					  (build-monomial (fpoly-mul acc p)))))
+					  (build-monomial (fpoly-mul acc p) (1+ nterms)))))
 				 ((char-equal word #\*)
 				  ;; multiplication
-				  (build-monomial acc))
+				  (build-monomial acc nterms))
 				 ((char-equal word #\+)
 				  ;; addition of new monomial
-				  (fpoly-add acc (build-monomial 1)))
+				  (if (zerop nterms)
+					  (build-monomial 1 0)
+					  (fpoly-add acc (build-monomial 1 0))))
 				 ((char-equal word #\-)
 				  ;; subtraction of new monomial
-				  (fpoly-add acc (build-monomial -1)))
+				  (if (zerop nterms)
+					  (build-monomial -1 0)
+					  (fpoly-add acc (build-monomial -1 0))))
 				 ((char-equal word #\()
 				  ;; opening paren, parse a new polynomial until it hits a closing paren
 				  (build-monomial (fpoly-mul acc
 											 (parse-fpoly stream
 														  :recursive t
-														  :closing-brace closing-brace))))
+														  :closing-brace closing-brace))
+								  (1+ nterms)))
 				 ((char-equal word #\))
 				  ;; hit a closing paren, expecting to?
 				  (if recursive
 					  ;; expecting to hit one
-					  acc
+					  (if (zerop nterms)
+						  0
+						  acc)
 					  (error 'fpoly-error
 							 :place "PARSE-FPOLY"
 							 :data "Unexpected closing paren.")))
@@ -136,7 +146,9 @@
 					  ;; looking for a closing brace }
 					  ;; this happens if using a reader macro
 					  (if (not recursive)
-						  acc
+						  (if (zerop nterms)
+							  0
+							  acc)
 						  (error 'fpoly-error
 								 :place "PARSE-FPOLY"
 								 :data "Unmatched paren."))
@@ -148,7 +160,7 @@
 				  (error 'fpoly-error
 						 :place "PARSE-FPOLY"
 						 :data (format nil "Unable to parse ~A from stream." word)))))))
-	(build-monomial 1)))
+	(build-monomial 1 0)))
 
 (defun parse-fpoly-string (string)
   "Parse an fpoly object from a string"
