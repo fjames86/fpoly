@@ -92,7 +92,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 			(cons var (- (random (* 2 prime)) prime)))
 		  vars))
 
-(defun choose-bindings (mat &key (degree 1) (mod-prime 5))
+(defun choose-bindings (mat &key (degree 1) (prime 5))
   "Given a matrix, compute a set of bindings for the symbols"
   (let ((vars (let (vars)
 				(doentries (mat entry)
@@ -103,7 +103,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 				vars)))
 	(loop for i below (base-offset (length vars) degree) collect 
 		 (mapcar (lambda (var)
-				   (cons var (- (random (* mod-prime 2)) mod-prime)))
+				   (cons var (- (random (* prime 2)) prime)))
 				 vars))))
 
 (defun solve-matrix (mat prime)
@@ -121,6 +121,22 @@ into a solution matrix."
 								   binding-list
 								   max-degree))))
 
+(defun combine-matrices (mat-list primes)
+  "Chinese remainder each entry of the matrices to form a matrix of combined entries."
+  (let ((m (make-matrix (mat-size (car mat-list)))))
+	(doentries (m entry i j)
+	  (setf entry (fpoly-chinese-remainder (mapcar (lambda (mat)
+													 (aref mat i j))
+												   mat-list)
+										   primes)))
+	m))
+
+(defun solve-system (mat)
+  (let ((primes (choose-primes mat)))
+	(combine-matrices (mapcar (lambda (prime)
+								(solve-matrix (matrix-modulo mat prime) prime))
+							  primes)
+					  primes)))
 
 ;; --------------------- printers ---------------------
 

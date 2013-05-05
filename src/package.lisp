@@ -31,20 +31,10 @@
 		   #:make-matrix
 		   #:mat-size
 		   #:doentries
-		   #:mapmatrix
-		   #:combine-mat-vec
-		   #:destructure-matrix
-		   
-		   #:matrix-modulo
-		   #:eval-matrix
-
-		   #:choose-primes
-		   #:choose-bindings
-		   #:solve-matrix 
-		   
+		   #:mapmatrix		   
+		   #:solve-system		  
 		   #:print-matrices
 		   #:print-matrix-mma
-
 		   #:echelon
 		   #:det
 		   #:fpoly-det
