@@ -106,10 +106,21 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 				   (cons var (- (random (* prime 2)) prime)))
 				 vars))))
 
+(defun find-max-degree (mat)
+  "Sum the degree of the diagonal elements of the matrix."
+  (let ((max-degree 0))
+	(dotimes (i (mat-size mat))
+	  (let ((entry (aref mat i i)))
+		(let ((degree (if (fpoly? entry)
+						  (fpoly-degree entry)
+						  0)))
+		  (incf max-degree degree))))
+	max-degree))
+
 (defun solve-matrix (mat prime)
   "Choose some bindings, evaluate at each binding, solve using ffge and recombine back
 into a solution matrix."
-  (let ((max-degree 1)) ;; FIXME what degree can it be?
+  (let ((max-degree (find-max-degree mat)))
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
@@ -205,7 +216,9 @@ using the fraction free Gaussian Eliminaton alg"
 			(if (null (pivot a b i n))
 				(error 'fpoly-error
 					   :place "FFGE"
-					   :data "Unsolveable matrix, all zeroes in pivot column")))
+					   :data (format nil
+									 "Unsolveable matrix ~A, all zeroes in pivot column"
+									 a))))
 		
 		(loop for j from (1+ i) to (1- n) do
 			 (setf (svref b j) (- (* (aref a i i) (svref b j))
