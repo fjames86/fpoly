@@ -153,11 +153,11 @@ into a solution matrix."
 (defun print-matrix-mma (stream matrix)
   "Print a matrix in mathematica format, {{poly, ...}, ...}"
   (princ "{" stream)
-  (dotimes (i (1+ (mat-size matrix)))
+  (dotimes (i (mat-size matrix))
 	(if (> i 0) (princ ", " stream))
 	
 	(princ "{" stream)
-	(dotimes (j (mat-size matrix))
+	(dotimes (j (1+ (mat-size matrix)))
 	  (if (> j 0) (princ ", " stream))
 	  (princ (aref matrix i j) stream))
 	(princ "}" stream))
