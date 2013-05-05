@@ -40,7 +40,7 @@
 
 		   #:choose-primes
 		   #:choose-bindings
-		   #:generate-matrices
+		   #:solve-matrix 
 		   
 		   #:print-matrices
 		   #:print-matrix-mma

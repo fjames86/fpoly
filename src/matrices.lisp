@@ -106,21 +106,23 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 				   (cons var (- (random (* mod-prime 2)) mod-prime)))
 				 vars))))
 
-(defun generate-matrices (mat)
-  "Given a matrix, compute it modulo several primes,
-then evaluate each of these at some points"
-  (let ((primes (choose-primes mat))
-		(bindings (choose-bindings mat)))
-	(values
-	 (mapcar (lambda (prime)
-			   (mapcar (lambda (binding)
-						 (eval-matrix (matrix-modulo mat prime)
-									  binding
-									  :prime prime))
-					   bindings))
-			 primes)
-	 primes
-	 bindings)))
+(defun solve-matrix (mat prime)
+  "Choose some bindings, evaluate at each binding, solve using ffge and recombine back
+into a solution matrix."
+  (let ((max-degree 1)) ;; FIXME what degree can it be?
+	(let ((binding-list (choose-bindings mat
+										 :degree max-degree
+										 :prime prime)))
+	  (lagrange-interpolate-matrix (mapcar (lambda (bindings)
+											 (echelon (eval-matrix mat
+																   bindings
+																   :prime prime)))
+										   binding-list)
+								   binding-list
+								   max-degree))))
+
+
+;; --------------------- printers ---------------------
 
 (defun print-matrices (fname mats)
   "Print out a list of matrices. typically matrices of numbers only"
