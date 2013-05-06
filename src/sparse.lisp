@@ -40,5 +40,15 @@ alist of var/power pairs."
   nil)
 
 
-	
+(defun spoly-add (sp1 sp2)
+  "Add two sparse polys"
+
+  nil)
+
+
+(defun spoly-mul (sp1 sp2)
+  "Multiply two sparse polys"
+  nil)
+
+
 						  
