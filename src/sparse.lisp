@@ -39,10 +39,18 @@ alist of var/power pairs."
 		  sp))
   nil)
 
-
+(defun vars-match (terms1 terms2)
+  (mapc (lambda (vars)
+		  (every #'member var 
+  (every #'eq
+		 (mapcar #'car terms1)
+		 (mapcar #'car terms2)))
+		 
 (defun spoly-add (sp1 sp2)
   "Add two sparse polys"
-
+  (let (result)
+	(mapc (lambda (term)
+			
   nil)
 
 
