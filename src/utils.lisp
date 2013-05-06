@@ -125,7 +125,14 @@ arguments."
 				 (t (rec (cons c acc)))))))
 	(rec nil)))
 
-  
+
+(defun mkstr (&rest vals)
+  "Form a string of each value."
+  (with-output-to-string (s)
+	(dolist (x vals)
+	  (princ x s))
+	s))
+
 ;;; ---------------- some useful number routines -----------
 
 ;; several prime number related functions follow

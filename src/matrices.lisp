@@ -129,7 +129,6 @@ into a solution matrix."
 												bindings
 												:prime prime)))
 						binding-list)))
-		(format t "ms: ~A~%" ms)
 		(lagrange-interpolate-matrix ms
 									 binding-list
 									 max-degree)))))
@@ -374,7 +373,7 @@ return (list NIL NIL)"
 				 mat))))
 
 (defun fpoly-det (mat)
-  "Compute the determinant of a matrix of polys"
+  "Compute the determinant of a matrix of polys."
   (labels ((sub-det (terms)
 			 (let ((n (length terms)))
 			   (cond
@@ -397,5 +396,16 @@ return (list NIL NIL)"
 				 (mat-list mat)
 				 mat))))
 
+
+(defun det-pattern (n)
+  "Return a polynomial for the determinant pattern of an n x n matrix."
+  (let ((m (make-array (list n n)
+					   :initial-contents
+					   (loop for i below n collect
+							(loop for j below n collect
+								 (make-fpoly (intern (mkstr "X" i j))
+											 1
+											 '(0 1)))))))
+	(fpoly-det m)))
 
 
