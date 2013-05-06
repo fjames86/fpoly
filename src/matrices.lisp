@@ -124,13 +124,16 @@ into a solution matrix."
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
-	  (lagrange-interpolate-matrix (mapcar (lambda (bindings)
-											 (echelon (eval-matrix mat
-																   bindings
-																   :prime prime)))
-										   binding-list)
-								   binding-list
-								   max-degree))))
+	  (let ((ms (mapcar (lambda (bindings)
+						  (echelon (eval-matrix mat
+												bindings
+												:prime prime)))
+						binding-list)))
+		(format t "ms: ~A~%" ms)
+		(lagrange-interpolate-matrix ms
+									 binding-list
+									 max-degree)))))
+
 
 (defun combine-matrices (mat-list primes)
   "Chinese remainder each entry of the matrices to form a matrix of combined entries."

@@ -63,13 +63,15 @@
 
 (defun lagrange-interpolate-matrix (matrices bindings degree)
   "Interpolate each entry in the list of matrices."
-  (let ((n (mat-size (car matrices))))
+  (let ((n (mat-size (car matrices)))
+		(vars (mapcar #'car (car bindings)))
+		(points (mapcar (lambda (b)
+						  (mapcar #'cdr b))
+						bindings)))
 	(let ((mat (make-matrix n)))
 	  (doentries (mat entry i j)
-		(setf entry (lagrange-interpolate (mapcar #'car (car bindings))
-										  (mapcar (lambda (b)
-													(mapcar #'cdr b))
-												  bindings)
+		(setf entry (lagrange-interpolate vars
+										  points
 										  (mapcar (lambda (matrix)
 													(aref matrix i j))
 												  matrices)
