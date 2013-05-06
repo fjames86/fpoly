@@ -7,7 +7,7 @@
 
 
 (defun make-spoly ()
-  "Sparse polynomials are lists of (cons coeff . powers) with powers an
+  "Sparse polynomials are lists of (coeff . powers) with powers an
 alist of var/power pairs."
   nil)
 
@@ -24,13 +24,17 @@ alist of var/power pairs."
 						  (format stream " - ")
 						  (format stream " + ")))					  
 
-				  (if (and printed (= (abs coeff) 1))
-					  (format stream "~A*" (* sign coeff))
-					  (format stream "~A*" coeff))
+				  (cond
+					((and printed (= (abs coeff) 1))
+					 nil)
+					(printed
+					 (format stream "~A*" (* sign coeff)))
+					(t (format stream "~A*" coeff)))
 			  
 				  (mapc (lambda (vp)
 						  (format stream "~A^~A" (car vp) (cdr vp)))
 						terms)
+				  
 				  (setf printed t)))))
 		  sp))
   nil)
