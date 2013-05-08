@@ -180,42 +180,27 @@ into a solution matrix."
 
 ;; ------------------- matrix reduction and inversion -----------------------------------
 
-(defun combine-mat-vec (mat vec)
-  "Combine a matrix and vector into an n+1 x n matrix."
-  (let ((n (array-dimension vec 0)))
-	(let ((m (make-matrix n)))
-	  (dotimes (i n)
-		(dotimes (j n)
-		  (setf (aref m i j) (aref mat i j)))
-		(setf (aref m i n) (svref vec i)))
-	  m)))
+(defun pivot (mat i n)
+  "Find the first row >= i with element (i,j) non-zero, then swap the rows"
+  (labels ((rec (row)
+			 (cond
+			   ((= row n) nil) ; failed to swap any rows
+			   ((zerop (aref mat row i))
+				(rec (1+ row)))
+			   (t (dotimes (col (1+ n))
+					(rotatef (aref mat i col) (aref mat row col)))
+				  t))))
+	(rec i)))
 
-(defun destructure-matrix (matrix)
-  "Destruture an n+1 x n matrix into a matrix and vector."
-  (let ((n (mat-size matrix)))
-	(let ((mat (make-array (list n n)))
-		  (vec (make-array n)))
-	  (dotimes (i n)
-		(dotimes (j n)
-		  (setf (aref mat i j) (aref matrix i j)))
-		(setf (svref vec i) (aref matrix i n)))
-	  (list mat vec))))
-					   
-(defun echelon (matrix)
-  "Reduce a matrix to echelon form, using the fraction free Gaussian elimination algorithm."
-  (destructuring-bind (mat vec) (destructure-matrix matrix)
-	(apply #'combine-mat-vec (ffge mat vec))))
 
-(defun ffge (mat vec)
+(defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton alg"
-  (let ((a (copy-array mat))
-		(b (copy-array vec)))
-	(let ((n (array-dimension b 0)))
+	(let ((n (car (array-dimensions a))))
 	  (dotimes (i (1- n))
 		;; pivot if needed
 		(if (zerop (aref a i i))
-			(if (null (pivot a b i n))
+			(if (not (pivot a i n))
 				(error 'fpoly-error
 					   :place "FFGE"
 					   :data (format nil
@@ -223,12 +208,12 @@ using the fraction free Gaussian Eliminaton alg"
 									 a))))
 		
 		(loop for j from (1+ i) to (1- n) do
-			 (setf (svref b j) (- (* (aref a i i) (svref b j))
-								  (* (aref a j i) (svref b i))))
+			 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
+								   (* (aref a j i) (aref a i n))))
 			 (if (> i 0) 
-				 (multiple-value-bind (q r) (truncate (svref b j) (aref a (1- i) (1- i)))
+				 (multiple-value-bind (q r) (truncate (aref a j n) (aref a (1- i) (1- i)))
 				   (declare (ignore r)) ; should be zero
-				   (setf (svref b j) q)))
+				   (setf (aref a j n) q)))
 			 (loop for k from (1+ i) to (1- n) do
 				  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
 										(* (aref a j i) (aref a i k))))
@@ -238,30 +223,7 @@ using the fraction free Gaussian Eliminaton alg"
 						(declare (ignore r))
 						(setf (aref a j k) q))))
 			 (setf (aref a j i) 0))))
-	(list a b)))
-
-(defun ffge-list (mats vecs)
-  "Reduce a list of paired matrices and vectors. If the matrix is unsolveable then
-return (list NIL NIL)"
-  (mapcar (lambda (mat vec)
-			(handler-case (ffge mat vec)
-			  (fpoly-error (e)
-				(declare (ignore e))
-				(list nil nil))))
-		  mats vecs))
-
-(defun pivot (mat vec i n)
-  "Find the first row >= i with element (i,j) non-zero, then swap the rows"
-  (labels ((rec (row)
-			 (cond
-			   ((= row n) nil) ; failed to swap any rows
-			   ((zerop (aref mat row i))
-				(rec (1+ row)))
-			   (t (dotimes (col n)
-					(rotatef (aref mat i col) (aref mat row col)))
-				  (rotatef (svref vec i) (svref vec row))
-				  t))))
-	(rec i)))
+	a)
 
 (defun make-identity (n)
   "Make an identity matrix"
@@ -327,17 +289,9 @@ return (list NIL NIL)"
 	(make-array (list n n)
 				:initial-contents mlist)))
 
-(defun vec-list (vector)
-  "Convert a vector to a list."
-  (let ((n (array-dimension vector 0)))
-	(loop for i below n collect (svref vector i))))
-
-(defun list-vec (list)
-  "Convert a list to a vector."
-  (make-array (length list) :initial-contents list))
-
 (defun fpoly-det (mat)
   "Compute the determinant of a matrix of polys."
+  (format *error-output* "Warning: fpoly-det is incorrect and very slow. don't use it!")
   (labels ((sub-det (terms)
 			 (let ((n (length terms)))
 			   (cond
@@ -443,6 +397,7 @@ return (list NIL NIL)"
 	(values L U P s)))))
 
 (defun det (mat)
+  "Find the determinant of an n x n matrix using LU decomposition."
   (let ((n (car (array-dimensions mat))))
 	(multiple-value-bind (l u p s) (lu mat)
 	  (declare (ignore p))
