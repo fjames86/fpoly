@@ -9,7 +9,7 @@
 (in-package #:fpoly-ffi)
 
 
-(defmacro load-fpoly (&optional search-path)
+(defmacro load-libfpoly (&optional search-path)
   "Load the libfpoly library"
   `(progn
 	 (define-foreign-library ,(if search-path
@@ -20,7 +20,7 @@
 	   (t "libfpoly.so"))
 	 (use-foreign-library libfpoly)))
 
-;(load-fpoly)
+;(load-libfpoly)
 
   
 ;;; -------------- type definitions -----------------------
