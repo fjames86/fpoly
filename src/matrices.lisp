@@ -196,6 +196,12 @@ into a solution matrix."
 					(rotatef (aref mat i col) (aref mat row col)))))))
 	(rec i)))
 
+(defun swap-rows (mat r1 r2)
+  "Destructively swaps elements in rows r1 and r2"
+  (let ((n (array-dimension mat 0)))
+	(dotimes (col n)
+	  (rotatef (aref mat r1 col) (aref mat r2 col)))
+	mat))
 
 (defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,

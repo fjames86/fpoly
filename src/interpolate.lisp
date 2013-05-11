@@ -23,27 +23,34 @@
   (let ((n (base-offset (length (car points)) degree)))
 	(make-array (list n n)
 				:initial-contents (loop for point in points collect
-									   (reverse (coeff-array point degree))))))
+									   (reverse (coeff-array (reverse point) degree))))))
 
-;;
-
-(defun lagrange-determinant (mat vars degree row)
+(defun lagrange-determinant (lagrange-matrix vars degree row)
   "Find the determinant of the matrix with the ith row replaced with the monomials"
-  (let* ((n (car (array-dimensions mat)))
+  (let* ((n (car (array-dimensions lagrange-matrix)))
+		 (mat (make-array (list n n)))
 		 (m (make-array (list (1- n) (1- n)))))
+	(dotimes (r n)
+	  (dotimes (c n)
+		(cond
+		  ((= r 0)
+		   (setf (aref mat r c) (aref lagrange-matrix row c)))
+		  ((= r row)
+		   (setf (aref mat r c) (aref lagrange-matrix 0 c)))
+		  (t (setf (aref mat r c) (aref lagrange-matrix r c))))))
 	(labels ((sub-det (col)
 			   (dotimes (r (1- n))
 				 (dotimes (c (1- n))
 				   (setf (aref m r c)
 						 (aref mat
-							   (if (< r row) r (1+ r))
+							   (1+ r)
 							   (if (< c col) c (1+ c))))))
 			   (det m)))
-	  (make-fpoly vars degree
-				  (reverse (loop for i below n collect
-								(* (if (= row 0) 1 -1)
-								   (if (= (mod i 2) 0) 1 -1)
-								   (sub-det i))))))))
+	  (make-fpoly (reverse vars) degree
+				  (loop for col downfrom (1- n) to 0 collect
+					   (* (if (= row 0) 1 -1)
+						  (if (zerop (mod col 2)) 1 -1)
+						  (sub-det col)))))))
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"
@@ -57,8 +64,8 @@
 			   :data "Number of data points does not match polynomial degree"))
 	(let* ((m (form-lagrange-matrix points degree))
 		   (delta (det m))
-		   (deltas (loop for i below (array-dimension m 0) collect
-						(lagrange-determinant m vars degree i))))
+		   (deltas (loop for row below (array-dimension m 0) collect
+						(lagrange-determinant m vars degree row))))
 	  (format t "delta: ~A~%deltas: ~S~%" delta deltas)
 	  (fpoly-sum (mapcar (lambda (val d)
 						   (fpoly-mul (/ val delta) d))
