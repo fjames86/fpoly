@@ -2,7 +2,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <alloca.h>
+#include <stdlib.h>
 
 #define aref(mat, row, col, n) (mat[(col)*(n) + (row)])
 

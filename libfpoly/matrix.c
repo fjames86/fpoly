@@ -167,10 +167,10 @@ int det(int *matrix, int n) {
 	int nswaps;
 	int dt, i;
 	
-	u = (int *)alloca(sizeof(int)*n*n);
-	l = (int *)alloca(sizeof(int)*n*n);
-	p = (int *)alloca(sizeof(int)*n*n);
-	dd = (int *)alloca(sizeof(int)*n);
+	u = (int *)malloc(sizeof(int)*n*n);
+	l = (int *)malloc(sizeof(int)*n*n);
+	p = (int *)malloc(sizeof(int)*n*n);
+	dd = (int *)malloc(sizeof(int)*n);
 
 	nswaps = lu_decompose(u, l, p, dd, matrix, n);
 
@@ -182,6 +182,11 @@ int det(int *matrix, int n) {
 		dt /= dd[i];
 	}
 
+	free(u);
+	free(l);
+	free(p);
+	free(dd);
+	
 	return dt;
 }
 
