@@ -347,7 +347,8 @@ using the fraction free Gaussian Eliminaton alg."
 		 (l (make-identity n))
 		 (p (make-identity n))
 		 (dd (make-array n))
-		 (oldpivot 1))
+		 (oldpivot 1)
+		 (nswaps 0))
 	(dotimes (k (1- n))
 	  (if (zerop (aref u k k))
 		  (let ((kpivot (1+ k))
@@ -361,7 +362,8 @@ using the fraction free Gaussian Eliminaton alg."
 				(loop for col from k to (1- n) do
 					 (progn
 					   (rotatef (aref u k col) (aref u kpivot col))
-					   (rotatef (aref p k col) (aref p kpivot col)))))))
+					   (rotatef (aref p k col) (aref p kpivot col)))))
+			(incf nswaps)))
 	  (setf (aref l k k) (aref u k k)
 			(svref dd k) (* oldpivot (aref u k k)))
 	  (loop for i from (1+ k) to (1- n) do
@@ -377,13 +379,13 @@ using the fraction free Gaussian Eliminaton alg."
 			 (setf (aref u i k) 0)))
 	  (setf oldpivot (aref u k k)))
 	(setf (svref dd (1- n)) oldpivot)
-	(values u l p dd)))
+	(values u l p dd nswaps)))
 
 (defun lu-det (matrix)
   (let ((n (array-dimension matrix 0)))
-	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
+	(multiple-value-bind (u l p dd nswaps) (lu-decomposition matrix)
 	  (declare (ignore p)) ;; this gives the sign,
-	  (let ((det 1))
+	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
 		(dotimes (i n)
 		  (setf det (* det (aref u i i) (aref l i i)))
 		  (setf det (/ det (svref dd i))))
