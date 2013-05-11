@@ -262,7 +262,9 @@ using the fraction free Gaussian Eliminaton alg."
 (defun invert (matrix)
   "Invert a matrix of numbers using gauss jordan elimination"
   (unless (= (array-dimension matrix 0) (array-dimension matrix 1))
-	(error "Not a square matrix."))
+	(error 'fpoly-error
+		   :place "INVERT"
+		   :data "Not a square matrix."))
 
   (let* ((n (array-dimension matrix 0))
 		 (a (copy-array matrix))
@@ -290,7 +292,9 @@ using the fraction free Gaussian Eliminaton alg."
 			 (swap-row b row col))))
 		(let ((s (aref a row row)))
 		  (cond
-			((zerop s) (error "Non-invertible matrix."))
+			((zerop s) (error 'fpoly-error
+							  :place "INVERT"
+							  :data "Non-invertible matrix."))
 			(t
 			 (scale-row a row (/ s))
 			 (scale-row b row (/ s)))))
@@ -360,7 +364,9 @@ using the fraction free Gaussian Eliminaton alg."
 					 (setf notfound nil)
 					 (incf kpivot)))
 			(if (= kpivot n)
-				(error "cant pivot matrix")
+				(error 'fpoly-error
+					   :place "LU-DECOMPOSITION"
+					   :data "Cant pivot matrix")
 				(loop for col from k to (1- n) do
 					 (progn
 					   (rotatef (aref u k col) (aref u kpivot col))
@@ -376,7 +382,9 @@ using the fraction free Gaussian Eliminaton alg."
 														  (* (aref u k j) (aref u i k)))
 													   oldpivot)
 					(unless (zerop r)
-					  (error "remainder non zero: ~A" r))
+					  (error 'fpoly-error
+							 :place "LU-DECOMPOSITION"
+							 :data "Remainder non zero: ~A" r))
 					(setf (aref u i j) q)))
 			 (setf (aref u i k) 0)))
 	  (setf oldpivot (aref u k k)))
