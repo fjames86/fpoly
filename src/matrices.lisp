@@ -13,24 +13,24 @@
 (defun mat-size (matrix)
   (array-dimension matrix 0))
 
-(defmacro doentries ((matrix entry-var &optional col row) &body body)
+(defmacro doentries ((matrix entry-var &optional row col) &body body)
   (let ((gm (gensym "MATRIX"))
-		(gi (if col col (gensym "COL")))
-		(gj (if row row (gensym "ROW")))
+		(grow (if row row (gensym "ROW")))
+		(gcol (if col col (gensym "COL")))
 		(gsize (gensym "SIZE")))
 	`(let* ((,gm ,matrix)
 			(,gsize (mat-size ,gm)))
-	   (dotimes (,gi ,gsize)
-		 (dotimes (,gj (1+ ,gsize))
-		   (symbol-macrolet ((,entry-var (aref ,gm ,gi ,gj)))
+	   (dotimes (,grow ,gsize)
+		 (dotimes (,gcol (1+ ,gsize))
+		   (symbol-macrolet ((,entry-var (aref ,gm ,grow ,gcol)))
 			 ,@body)))
 	   ,gm)))
 
 (defun mapmatrix (function matrix)
   "Map a function over the entries of a matrix, returning a new matrix"
   (let ((new (make-matrix (mat-size matrix))))
-	(doentries (new entry col row)
-	  (setf entry (funcall function (aref matrix col row))))
+	(doentries (new entry row col)
+	  (setf entry (funcall function (aref matrix row col))))
 	new))
 
 ;; ------ various useful functions ------------
@@ -95,9 +95,9 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		(mapcar (lambda (var)
 				  (cons var (- (random (* 2 prime)) prime)))
 				vars)))
-	  ((not (some (lambda (p)
-					(zerop (fpoly-eval p bindings)))
-				  polys))
+	  ((every (lambda (p)
+				(not (zerop (fpoly-eval p bindings))))
+			  polys)
 	   bindings)))
 
 (defun choose-bindings (mat &key (degree 1) (prime 5))
@@ -132,27 +132,30 @@ into a solution matrix."
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
-	  (let ((ms (mapcar (lambda (bindings)
-						  (echelon (eval-matrix mat
+	  (let ((evaled-mats (mapcar (lambda (bindings)
+								   (eval-matrix mat
 												bindings
-												:prime prime)))
-						binding-list)))
-		(lagrange-interpolate-matrix ms
-									 binding-list
-									 max-degree)))))
+												:prime prime))
+								 binding-list)))
+		(let ((ms (mapcar (lambda (evaled-mat)
+							(echelon evaled-mat))
+						  evaled-mats)))
+		  (lagrange-interpolate-matrix ms
+									   binding-list
+									   max-degree))))))
 
 
 (defun combine-matrices (mat-list primes)
   "Chinese remainder each entry of the matrices to form a matrix of combined entries."
   (let ((m (make-matrix (mat-size (car mat-list)))))
-	(doentries (m entry i j)
+	(doentries (m entry row col)
 	  (setf entry (fpoly-chinese-remainder (mapcar (lambda (mat)
-													 (aref mat i j))
+													 (aref mat row col))
 												   mat-list)
 										   primes)))
 	m))
 
-(defun solve-system (mat)
+(defun solve-system (mat)  
   (let ((primes (choose-primes mat)))
 	(combine-matrices (mapcar (lambda (prime)
 								(solve-matrix (matrix-modulo mat prime) prime))
