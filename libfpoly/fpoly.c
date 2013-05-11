@@ -4,7 +4,7 @@
 /* ---------------------- init ----------------- */
 
 void fpoly_open () {
-	int i;
+	int i, j;
 	
 	symbol_init (FPOLY_SYMBOLS);
 	mpz_init(tmp_1);
@@ -20,15 +20,17 @@ void fpoly_open () {
 	/* populate the preallocated power list table */
 	for(i=0; i < FPOLY_SYMBOLS; i++) {
 		for(j=0; j < FPOLY_DEGREE; j++) {
+			/*
 			powers_table[i][j] = (int*) malloc(sizeof(int)*i);
 			fpoly_gen_powers(powers_table[i], i, j);
+			*/
 		}
 	}
 	
 }
 
 void fpoly_close () {
-	int i;
+	int i, j;
 	/* free all tables etc */
 
 	mpz_clear(tmp_1);
@@ -43,7 +45,7 @@ void fpoly_close () {
 	/* free the power list table */
 	for(i=0; i < FPOLY_SYMBOLS; i++) {
 		for(j=0; j < FPOLY_DEGREE; j++) {
-			free(powers_table[i][j]);
+			/*			free(powers_table[i][j]);*/
 		}
 	}	
 
@@ -74,7 +76,7 @@ fpoly *make_fpoly(symbol *vars, int nvars, int degree) {
 	}
 
 	if (nvars <= FPOLY_SYMBOLS && degree <= FPOLY_DEGREE) {
-		p->powers = powers_table[nvars][degree];
+		/*		p->powers = powers_table[nvars][degree]; */
 	} else {
 		/* need to build up a custom table */
 		p->powers = NULL;
@@ -185,7 +187,11 @@ void fpoly_coeff_add (fpoly *p, int *powers, mpz_t val) {
 }
 
 void fpoly_coeff_add_si (fpoly *p, int *powers, long int val) {
-	mpz_add_si(p->coeffs[offset(p->nvars, powers)], p->coeffs[offset(p->nvars, powers)], val);
+	if (val >= 0) {
+		mpz_add_ui(p->coeffs[offset(p->nvars, powers)], p->coeffs[offset(p->nvars, powers)], (unsigned long int)val);
+	} else {
+		mpz_sub_ui(p->coeffs[offset(p->nvars, powers)], p->coeffs[offset(p->nvars, powers)], (unsigned long int) (-val));
+	}
 }
 
 /* ------------------------- printer ------------------------- */
@@ -216,34 +222,37 @@ void print_fpoly_lisp (fpoly *p) {
 void fprint_fpoly(FILE *stream, fpoly *p) {
 	int printed = 0;
 	symbol *vars;
-	int i;
+	int i, j;
 	mpz_t coeff;
-
+	int sign, nvars;
+	int *powers;
+	
 	mpz_init (coeff);
 	for(i=0; i < p->size; i++) {
 		/* get the coeff and powers of this coeffieint */
 		powers = p->powers[i];		
 		mpz_set (coeff, p->coeffs[offset(p->nvars, powers)]);
 		
-		if (mpz_zerop (coeff)) {
+		if (mpz_cmp_si (coeff, 0) == 0) {
 			/* zero: do nothing */
 		} else {
-			if (mpz_negativep (coeff)) {
+			if (mpz_cmp_si (coeff, 0) == -1) {
 				sign = -1;
 			} else {
 				sign = +1;
 			}
 
 			if (i == 0) {
-				mpz_printf(stream, coeff);
-			} else if (mpz_eql (coeff, -1)) {
+				gmp_fprintf(stream, "%Zd", coeff);
+			} else if (mpz_cmp_si (coeff, -1) == 0) {
 				if (!printed) {
 					fprintf (stream, " - ");
 				}
-			} else if (mpz_eql (coeff, +1)) {
+			} else if (mpz_cmp_si (coeff, +1) == 0) {
 				/* nothing */
 			} else {
-				mpz_printf(stream, sign * coeff);
+				mpz_mul_si (coeff, coeff, sign);
+				gmp_fprintf(stream, "%Zd", coeff);
 			}
 
 			for(j=0; j < nvars; j++) {

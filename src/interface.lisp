@@ -16,9 +16,13 @@
 								  `(libfpoly :search-path ,search-path)
 								  'libfpoly)
 	   (:unix "libfpoly.so")
+	   (:windows "libfpoly.dll")
 	   (t "libfpoly.so"))
 	 (use-foreign-library libfpoly)))
 
+;(load-fpoly)
+
+  
 ;;; -------------- type definitions -----------------------
 
 ;;; --------------- C function definitions -------------------

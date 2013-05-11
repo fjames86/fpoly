@@ -25,7 +25,7 @@ typedef struct {
 	int **powers;
 } fpoly;
 
-int *powers_table[FPOLY_SYMBOLS][FPOLY_DEGREE];
+/*int *powers_table[FPOLY_SYMBOLS][FPOLY_DEGREE];*/
 
 /* call open/close before/after using any other function */
 void fpoly_open ();
