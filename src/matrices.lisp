@@ -312,10 +312,6 @@ using the fraction free Gaussian Eliminaton alg."
 
 ;;; --------------------------------------------------------
 
-;;; lu decomposition and determinant follows
-;;; taken from  http://rosettacode.org/wiki/LU_decomposition#Common_Lisp
-;;;
- 
 (defun mmul (A B)
   (let* ((m (car (array-dimensions A)))
 		 (n (cadr (array-dimensions A)))
@@ -331,7 +327,7 @@ using the fraction free Gaussian Eliminaton alg."
 
 ;;; ----------------------
 
-(defun test (matrix)
+(defun lu-test (matrix)
   (let ((n (array-dimension matrix 0)))
 	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
 	  (format t "u: ~A~%l: ~A~%p: ~A~%dd: ~A~%" u l p dd)
