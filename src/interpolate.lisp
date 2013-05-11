@@ -34,9 +34,32 @@
 (defun form-monomials (vars degree)
   "List of all monomials for vars up to degree"
   (let ((nvars (length vars)))
+	(reverse 
 	(mapcar (lambda (powers)
 			  (form-monomial vars powers))
-			(gen-all-powers nvars degree))))
+			(gen-all-powers nvars degree)))))
+
+;;
+
+(defun lagrange-determinant (mat vars degree row)
+  "Find the determinant of the matrix with the ith row replaced with the monomials"
+  (let* ((n (car (array-dimensions mat)))
+		 (m (make-array (list (1- n) (1- n)))))
+	(labels ((sub-det (col)
+			   (dotimes (r (1- n))
+				 (dotimes (c (1- n))
+				   (setf (aref m r c)
+						 (aref mat
+							   (if (< r row) r (1+ r))
+							   (if (< c col) c (1+ c))))))
+			   (format t "m(~A) : ~A~%" col m)
+			   (det m)))
+	  (make-fpoly vars degree
+				  (reverse (loop for i below n collect
+								(* (if (= row 0) 1 -1)
+								   (if (= (mod i 2) 0) 1 -1)
+								   (sub-det i))))))))
+
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"

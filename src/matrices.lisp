@@ -184,28 +184,31 @@ into a solution matrix."
   "Find the first row >= i with element (i,j) non-zero, then swap the rows"
   (labels ((rec (row)
 			 (cond
-			   ((= row n) nil) ; failed to swap any rows
+			   ((= row n)
+				(error 'fpoly-error
+					   :place "PIVOT"
+					   :data (format nil
+									 "Unsolveable matrix ~A, all zeroes in pivot column"
+									 mat)))
 			   ((zerop (aref mat row i))
 				(rec (1+ row)))
 			   (t (dotimes (col (1+ n))
-					(rotatef (aref mat i col) (aref mat row col)))
-				  t))))
+					(rotatef (aref mat i col) (aref mat row col)))))))
 	(rec i)))
 
 
 (defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,
-using the fraction free Gaussian Eliminaton alg"
-	(let ((n (car (array-dimensions a))))
+using the fraction free Gaussian Eliminaton alg."
+	(let ((n (car (array-dimensions a)))
+		  (swaps 0)
+		  (muls 1))
 	  (dotimes (i (1- n))
 		;; pivot if needed
 		(if (zerop (aref a i i))
-			(if (not (pivot a i n))
-				(error 'fpoly-error
-					   :place "FFGE"
-					   :data (format nil
-									 "Unsolveable matrix ~A, all zeroes in pivot column"
-									 a))))
+			(progn
+			  (pivot a i n)
+			  (incf swaps)))
 		
 		(loop for j from (1+ i) to (1- n) do
 			 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
@@ -222,8 +225,84 @@ using the fraction free Gaussian Eliminaton alg"
 														   (aref a (1- i) (1- i)))
 						(declare (ignore r))
 						(setf (aref a j k) q))))
-			 (setf (aref a j i) 0))))
-	a)
+			 (setf (aref a j i) 0))
+		(setf muls (* muls (aref a i i)))
+		(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i))))))
+	  (values a swaps muls)))
+
+(defun make-pivot (matrix)
+  (let ((n (car (array-dimensions matrix))))
+	(let ((p (make-identity n)))
+	  (dotimes (i n)
+		(if (zerop (aref matrix i i))
+			(let (row)
+			  (loop for j from (1+ i) to (1- n) do
+				   (if (not (zerop (aref matrix j i)))
+					   (setf row j)))
+			  (if row
+				  (swap-rows p i row)
+				  (error 'fpoly-error
+						 :place "MAKE-PIVOT"
+						 :data "Unable to pivot matrix")))))
+	  p)))
+
+
+(defun lu-decompose (matrix)
+  "Change a into upper triangular form"
+  (let* ((n (car (array-dimensions matrix)))
+		 (p (make-pivot matrix))
+		 (u (make-array (list n n)))
+		 (l (make-array (list n n))))
+	(let ((a (mmul p matrix)))
+	  (loop for j from 0 to (1- n) do
+		   (progn
+			 (setf (aref l j j ) 1)
+			 (loop for i from 0 to j do
+				  (progn
+					(setf (aref u i j) (aref a i j))
+					(loop for k from 0 to (1- i) do
+						 (setf (aref u i j)
+							   (- (* (aref l j j) (aref u i j))
+								  (* (aref u k j) (aref l i k)))))))
+
+			 (loop for i from j to (1- n) do
+				  (progn
+					(setf (aref l i j) (aref a i j))
+					(loop for k from 0 to (1- j) do
+						 (setf (aref l i j)
+							   (- (* (aref u j j) (aref l i j))
+								  (* (aref u k j) (aref l i k)))))))))
+;					(setf (aref l i j) (/ (aref l i j) (aref u j j)))))))
+	  (values l u p))))
+
+
+
+
+(defun det (mat)
+		"Matrix determinant"
+		(let ((n (car (array-dimensions mat))))
+		  (let ((m (make-array (list n (1+ n)) :initial-element 0)))
+			(dotimes (i n)
+			  (dotimes (j n)
+				(setf (aref m i j) (aref mat i j))))
+			(multiple-value-bind (red swaps muls) (echelon m)
+			  (format t "red: ~A swaps: ~A muls: ~A ~%" red swaps muls)
+			  (let ((d (* (expt -1 swaps) muls)))
+				(dotimes (i n)
+				  (setf d (* d (aref red i i))))
+
+		  (dotimes (i n)
+			(dotimes (j n)
+			  (setf (aref m i j) (aref mat (- n i 1) (- n j 1)))))
+		  (multiple-value-bind (red1 swaps1 muls1) (echelon m)
+			(format t "red1: ~A swaps1: ~A muls1: ~A~%" red1 swaps1 muls1)
+			(dotimes (i n)
+			  (setf d (* d (aref red1 i i))))
+			(setf d (* d (expt -1 swaps1) muls1))
+			d))))))
+
+
+
 
 (defun make-identity (n)
   "Make an identity matrix"
@@ -288,31 +367,6 @@ using the fraction free Gaussian Eliminaton alg"
   (let ((n (length mlist)))
 	(make-array (list n n)
 				:initial-contents mlist)))
-
-(defun fpoly-det (mat)
-  "Compute the determinant of a matrix of polys."
-  (format *error-output* "Warning: fpoly-det is incorrect and very slow. don't use it!")
-  (labels ((sub-det (terms)
-			 (let ((n (length terms)))
-			   (cond
-				 ((= n 1)
-				  (car terms))
-				 ((= n 2)
-				  (destructuring-bind ((x11 x12) (x21 x22)) terms
-					(fpoly-sub (fpoly-mul x11 x22) (fpoly-mul x12 x21))))
-				 (t
-				  (do ((s 1 (- s))
-					   (i 0 (1+ i))
-					   (row (car terms) (cdr row))
-					   (sum 0
-							(fpoly-add sum
-									  (fpoly-mul s
-												(fpoly-mul (car row)
-														  (sub-det (sub-mat terms i 0)))))))
-					  ((null row) sum)))))))
-	(sub-det (if (arrayp mat)
-				 (mat-list mat)
-				 mat))))
 
 ;;; --------------------------------------------------------
 
@@ -396,12 +450,86 @@ using the fraction free Gaussian Eliminaton alg"
 	;; Return L, U and P.
 	(values L U P s)))))
 
-(defun det (mat)
+(defun lu-det (mat)
   "Find the determinant of an n x n matrix using LU decomposition."
   (let ((n (car (array-dimensions mat))))
-	(multiple-value-bind (l u p s) (lu mat)
-	  (declare (ignore p))
-	  (let ((d (expt -1 s)))
+	(cond
+	  ((= n 2)
+	   (- (* (aref mat 0 0) (aref mat 1 1))
+		  (* (aref mat 1 0) (aref mat 0 1))))
+	  (t
+	   (multiple-value-bind (l u p s) (lu mat)
+		 (declare (ignore p))
+		 (let ((d (expt -1 s)))
+		   (dotimes (i n)
+			 (setf d (* d (aref l i i) (aref u i i))))
+		   d))))))
+
+;;; ----------------------
+
+(defmacro while (condition &body body)
+  `(do ()
+	   (,condition)
+	 ,@body))
+
+(defun test (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
+	  (format t "u: ~A~%l: ~A~%p: ~A~%dd: ~A~%" u l p dd)
+	  (let ((d (make-array (list n n))))
 		(dotimes (i n)
-		  (setf d (* d (aref l i i) (aref u i i))))
-		d))))
+		  (setf (aref d i i) (svref dd i)))
+		(values (mmul p matrix)
+				(mmul l (mmul (invert d) u)))))))
+
+(defun lu-decomposition (matrix)
+  (let* ((n (array-dimension matrix 0))
+		 (u (copy-array matrix))
+		 (l (make-identity n))
+		 (p (make-identity n))
+		 (dd (make-array n))
+		 (oldpivot 1))
+	(dotimes (k (1- n))
+	  (if (zerop (aref u k k))
+		  (let ((kpivot (1+ k))
+				(notfound t))
+			(loop while (and (< kpivot n) notfound) do
+				 (if (not (zerop (aref u kpivot k)))
+					 (setf notfound nil)
+					 (incf kpivot)))
+			(if (= kpivot n)
+				(error "cant pivot matrix")
+				(loop for col from k to (1- n) do
+					 (progn
+					   (rotatef (aref u k col) (aref u kpivot col))
+					   (rotatef (aref p k col) (aref p kpivot col)))))))
+	  (setf (aref l k k) (aref u k k)
+			(svref dd k) (* oldpivot (aref u k k)))
+	  (loop for i from (1+ k) to (1- n) do
+		   (progn
+			 (setf (aref l i k) (aref u i k))
+			 (loop for j from (1+ k) to (1- n) do
+				  (multiple-value-bind (q r) (truncate (- (* (aref u k k) (aref u i j))
+														  (* (aref u k j) (aref u i k)))
+													   oldpivot)
+					(unless (zerop r)
+					  (error "remainder non zero: ~A" r))
+					(setf (aref u i j) q)))
+			 (setf (aref u i k) 0)))
+	  (setf oldpivot (aref u k k)))
+	(setf (svref dd (1- n)) oldpivot)
+	(values u l p dd)))
+
+
+(defun lu-det (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
+	  (declare (ignore p))
+	  (let ((det 1))
+		(dotimes (i n)
+		  (setf det (* det (aref u i i) (aref l i i)))
+		  (setf det (/ det (svref dd i))))
+		det))))
+	  
+		  
+	
