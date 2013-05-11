@@ -57,7 +57,7 @@
   (u :pointer)
   (l :pointer)
   (p :pointer)
-  (d :pointer)
+  (dd :pointer)
   (matrix :pointer)
   (n :int))
 
@@ -69,7 +69,7 @@
 ;;; ---------------- Lisp wrappers -------------------------
 
 (defun maref (row col n)
-  (+ (* row n) col))
+  (+ (* col n) row))
 
 (defun %fpoly-open ()
   "Call before any other functions."
@@ -126,10 +126,6 @@
 				   (setf (aref m j k) (mem-aref mats :int (+ (* i n n) (maref j k n)))))
 				 (setf (svref v j) (mem-aref vecs :int (+ (* i n) j))))
 			   (list m v)))))))
-
-
-(defun %lu-decompose (matrix)
-  matrix)
 
 (defun %det (matrix)
   (let ((n (array-dimension matrix 0)))

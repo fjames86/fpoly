@@ -113,7 +113,7 @@ int lu_decompose (int *u, int *l, int *p, int *dd, int *matrix, int n) {
 			   
 
 	
-	for (k=0; k < n; k++) {
+	for (k=0; k < n - 1; k++) {
 		if (aref(u, k, k, n) == 0) {
 			kpivot = k + 1;
 			notfound = 1;
