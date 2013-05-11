@@ -62,7 +62,9 @@
 		   #:%fpoly-open
 		   #:%fpoly-close
 		   #:%make-fpoly
-		   #:%ffge))
+		   #:%ffge
+		   #:%ffge-list
+		   #:%det))
 
 
 
