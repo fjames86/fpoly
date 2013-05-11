@@ -246,64 +246,6 @@ using the fraction free Gaussian Eliminaton alg."
 						 :data "Unable to pivot matrix")))))
 	  p)))
 
-
-(defun lu-decompose (matrix)
-  "Change a into upper triangular form"
-  (let* ((n (car (array-dimensions matrix)))
-		 (p (make-pivot matrix))
-		 (u (make-array (list n n)))
-		 (l (make-array (list n n))))
-	(let ((a (mmul p matrix)))
-	  (loop for j from 0 to (1- n) do
-		   (progn
-			 (setf (aref l j j ) 1)
-			 (loop for i from 0 to j do
-				  (progn
-					(setf (aref u i j) (aref a i j))
-					(loop for k from 0 to (1- i) do
-						 (setf (aref u i j)
-							   (- (* (aref l j j) (aref u i j))
-								  (* (aref u k j) (aref l i k)))))))
-
-			 (loop for i from j to (1- n) do
-				  (progn
-					(setf (aref l i j) (aref a i j))
-					(loop for k from 0 to (1- j) do
-						 (setf (aref l i j)
-							   (- (* (aref u j j) (aref l i j))
-								  (* (aref u k j) (aref l i k)))))))))
-;					(setf (aref l i j) (/ (aref l i j) (aref u j j)))))))
-	  (values l u p))))
-
-
-
-
-(defun det (mat)
-		"Matrix determinant"
-		(let ((n (car (array-dimensions mat))))
-		  (let ((m (make-array (list n (1+ n)) :initial-element 0)))
-			(dotimes (i n)
-			  (dotimes (j n)
-				(setf (aref m i j) (aref mat i j))))
-			(multiple-value-bind (red swaps muls) (echelon m)
-			  (format t "red: ~A swaps: ~A muls: ~A ~%" red swaps muls)
-			  (let ((d (* (expt -1 swaps) muls)))
-				(dotimes (i n)
-				  (setf d (* d (aref red i i))))
-
-		  (dotimes (i n)
-			(dotimes (j n)
-			  (setf (aref m i j) (aref mat (- n i 1) (- n j 1)))))
-		  (multiple-value-bind (red1 swaps1 muls1) (echelon m)
-			(format t "red1: ~A swaps1: ~A muls1: ~A~%" red1 swaps1 muls1)
-			(dotimes (i n)
-			  (setf d (* d (aref red1 i i))))
-			(setf d (* d (expt -1 swaps1) muls1))
-			d))))))
-
-
-
-
 (defun make-identity (n)
   "Make an identity matrix"
   (let ((mat (make-array (list n n) :initial-element 0)))
@@ -387,90 +329,7 @@ using the fraction free Gaussian Eliminaton alg."
 							  (aref B j k))))))
 	C))
 
-;; Creates a nxn identity matrix.
-(defun eye (n)
-  (let ((I (make-array `(,n ,n) :initial-element 0)))
-	(loop for j from 0 to (- n 1) do
-		 (setf (aref I j j) 1))
-	I))
-
-;; Swap two rows l and k of a mxn matrix A, which is a 2D array.
-(defun swap-rows (A l k)
-  (let* ((n (cadr (array-dimensions A)))
-		 (row (make-array n :initial-element 0)))
-	(loop for j from 0 to (- n 1) do
-		 (setf (aref row j) (aref A l j))
-		 (setf (aref A l j) (aref A k j))
-		 (setf (aref A k j) (aref row j)))))
-
-;; Creates the pivoting matrix for A.
-(defun pivotize (A)
-  (let* ((n (car (array-dimensions A)))
-		 (P (eye n))
-		 (s 0))
-	(loop for j from 0 to (- n 1) do
-		 (let ((max (aref A j j))
-			   (row j))
-		   (loop for i from j to (- n 1) do
-				(if (> (aref A i j) max)
-					(setq max (aref A i j)
-						  row i)))
-		   (if (not (= j row))
-			   (progn
-				 (swap-rows P j row)
-				 (incf s)))))
-
-	;; Return P.
-	(values P s)))
-
-;; Decomposes a square matrix A by PA=LU and returns L, U and P.
-(defun lu (A)
-  (let* ((n (car (array-dimensions A)))
-		 (L (make-array `(,n ,n) :initial-element 0))
-		 (U (make-array `(,n ,n) :initial-element 0)))
-	(multiple-value-bind (P s) (pivotize A)
-	  (let ((A (mmul P A)))
-
-	(loop for j from 0 to (- n 1) do
-		 (setf (aref L j j) 1)
-		 (loop for i from 0 to j do
-			  (setf (aref U i j)
-					(- (aref A i j)
-					   (loop for k from 0 to (- i 1)
-						  sum (* (aref U k j)
-								 (aref L i k))))))
-		 (loop for i from j to (- n 1) do
-			  (setf (aref L i j)
-					(/ (- (aref A i j)
-						  (loop for k from 0 to (- j 1)
-							 sum (* (aref U k j)
-									(aref L i k))))
-					   (aref U j j)))))
-
-	;; Return L, U and P.
-	(values L U P s)))))
-
-(defun lu-det (mat)
-  "Find the determinant of an n x n matrix using LU decomposition."
-  (let ((n (car (array-dimensions mat))))
-	(cond
-	  ((= n 2)
-	   (- (* (aref mat 0 0) (aref mat 1 1))
-		  (* (aref mat 1 0) (aref mat 0 1))))
-	  (t
-	   (multiple-value-bind (l u p s) (lu mat)
-		 (declare (ignore p))
-		 (let ((d (expt -1 s)))
-		   (dotimes (i n)
-			 (setf d (* d (aref l i i) (aref u i i))))
-		   d))))))
-
 ;;; ----------------------
-
-(defmacro while (condition &body body)
-  `(do ()
-	   (,condition)
-	 ,@body))
 
 (defun test (matrix)
   (let ((n (array-dimension matrix 0)))
@@ -520,16 +379,22 @@ using the fraction free Gaussian Eliminaton alg."
 	(setf (svref dd (1- n)) oldpivot)
 	(values u l p dd)))
 
-
 (defun lu-det (matrix)
   (let ((n (array-dimension matrix 0)))
 	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
-	  (declare (ignore p))
+	  (declare (ignore p)) ;; this gives the sign,
 	  (let ((det 1))
 		(dotimes (i n)
 		  (setf det (* det (aref u i i) (aref l i i)))
 		  (setf det (/ det (svref dd i))))
 		det))))
 	  
-		  
-	
+(defun det (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(cond
+	  ((= n 2)
+	   (- (* (aref matrix 0 0) (aref matrix 1 1))
+		  (* (aref matrix 0 1) (aref matrix 1 0))))
+	  (t (lu-det matrix)))))
+
+
