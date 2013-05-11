@@ -35,11 +35,12 @@
 		   #:solve-system		  
 		   #:print-matrices
 		   #:print-matrix-mma
+		   
 		   #:echelon
 		   #:det
-		   #:fpoly-det
 		   #:invert
-
+		   #:lu-decompose
+		   
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix

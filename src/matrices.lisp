@@ -350,7 +350,7 @@ using the fraction free Gaussian Eliminaton alg."
 
 (defun lu-test (matrix)
   (let ((n (array-dimension matrix 0)))
-	(multiple-value-bind (u l p dd) (lu-decomposition matrix)
+	(multiple-value-bind (u l p dd) (lu-decompose matrix)
 	  (format t "u: ~A~%l: ~A~%p: ~A~%dd: ~A~%" u l p dd)
 	  (let ((d (make-array (list n n))))
 		(dotimes (i n)
@@ -358,7 +358,7 @@ using the fraction free Gaussian Eliminaton alg."
 		(values (mmul p matrix)
 				(mmul l (mmul (invert d) u)))))))
 
-(defun lu-decomposition (matrix)
+(defun lu-decompose (matrix)
   (let* ((n (array-dimension matrix 0))
 		 (u (copy-array matrix))
 		 (l (make-identity n))
@@ -376,7 +376,7 @@ using the fraction free Gaussian Eliminaton alg."
 					 (incf kpivot)))
 			(if (= kpivot n)
 				(error 'fpoly-error
-					   :place "LU-DECOMPOSITION"
+					   :place "LU-DECOMPOSE"
 					   :data "Cant pivot matrix")
 				(loop for col from k to (1- n) do
 					 (progn
@@ -394,7 +394,7 @@ using the fraction free Gaussian Eliminaton alg."
 													   oldpivot)
 					(unless (zerop r)
 					  (error 'fpoly-error
-							 :place "LU-DECOMPOSITION"
+							 :place "LU-DECOMPOSE"
 							 :data "Remainder non zero: ~A" r))
 					(setf (aref u i j) q)))
 			 (setf (aref u i k) 0)))
@@ -403,9 +403,9 @@ using the fraction free Gaussian Eliminaton alg."
 	(values u l p dd nswaps)))
 
 (defun lu-det (matrix)
-  "Compute matrix determinant using lu-decomposition"
+  "Compute matrix determinant using lu-decompose"
   (let ((n (array-dimension matrix 0)))
-	(multiple-value-bind (u l p dd nswaps) (lu-decomposition matrix)
+	(multiple-value-bind (u l p dd nswaps) (lu-decompose matrix)
 	  (declare (ignore p)) ;; pivot matrix, don't need it
 	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
 		(dotimes (i n)

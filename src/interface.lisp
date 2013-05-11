@@ -53,10 +53,23 @@
   (num :int)
   (n :int))
 
+(defcfun ("lu_decompose" libfpoly-lu-decompose) :int
+  (u :pointer)
+  (l :pointer)
+  (p :pointer)
+  (d :pointer)
+  (matrix :pointer)
+  (n :int))
+
+(defcfun ("det" libfpoly-det) :int
+  (matrix :pointer)
+  (n :int))
+
+
 ;;; ---------------- Lisp wrappers -------------------------
 
 (defun maref (row col n)
-  (+ (* col n) row))
+  (+ (* row n) col))
 
 (defun %fpoly-open ()
   "Call before any other functions."
@@ -113,6 +126,21 @@
 				   (setf (aref m j k) (mem-aref mats :int (+ (* i n n) (maref j k n)))))
 				 (setf (svref v j) (mem-aref vecs :int (+ (* i n) j))))
 			   (list m v)))))))
+
+
+(defun %lu-decompose (matrix)
+  matrix)
+
+(defun %det (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(with-foreign-object (m :int (* n n))
+	  (dotimes (i n)
+		(dotimes (j n)
+		  (setf (mem-aref m :int (maref i j n)) (aref matrix i j))))
+
+	  (libfpoly-det m n))))
+
+
 
 
 
