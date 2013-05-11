@@ -87,24 +87,32 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		  (setf prod (* prod p))
 		  (push p pms))))))
 
-(defun choose-binding (vars prime)
-  (mapcar (lambda (var)
-			(cons var (- (random (* 2 prime)) prime)))
-		  vars))
+(defun choose-binding (vars polys prime)
+  (do ((bindings 
+		(mapcar (lambda (var)
+				  (cons var (- (random (* 2 prime)) prime)))
+				  vars)
+		(mapcar (lambda (var)
+				  (cons var (- (random (* 2 prime)) prime)))
+				vars)))
+	  ((not (some (lambda (p)
+					(zerop (fpoly-eval p bindings)))
+				  polys))
+	   bindings)))
 
 (defun choose-bindings (mat &key (degree 1) (prime 5))
   "Given a matrix, compute a set of bindings for the symbols"
-  (let ((vars (let (vars)
-				(doentries (mat entry)
-				  (if (fpoly? entry)
-					  (mapcar (lambda (var)
-								(pushnew var vars))
-							  (fpoly-vars entry))))
-				vars)))
-	(loop for i below (base-offset (length vars) degree) collect 
-		 (mapcar (lambda (var)
-				   (cons var (- (random (* prime 2)) prime)))
-				 vars))))
+  (let (vars polys)
+	(doentries (mat entry)
+	  (if (fpoly? entry)
+		  (progn
+			(mapcar (lambda (var)
+					  (pushnew var vars))
+					(fpoly-vars entry))
+			(push entry polys))))
+	
+	(loop for i below (base-offset (length vars) degree) collect
+		 (choose-binding vars polys prime))))
 
 (defun find-max-degree (mat)
   "Sum the degree of the diagonal elements of the matrix."
@@ -392,9 +400,10 @@ using the fraction free Gaussian Eliminaton alg."
 	(values u l p dd nswaps)))
 
 (defun lu-det (matrix)
+  "Compute matrix determinant using lu-decomposition"
   (let ((n (array-dimension matrix 0)))
 	(multiple-value-bind (u l p dd nswaps) (lu-decomposition matrix)
-	  (declare (ignore p)) ;; this gives the sign,
+	  (declare (ignore p)) ;; pivot matrix, don't need it
 	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
 		(dotimes (i n)
 		  (setf det (* det (aref u i i) (aref l i i)))
@@ -402,6 +411,7 @@ using the fraction free Gaussian Eliminaton alg."
 		det))))
 	  
 (defun det (matrix)
+  "Matrix determinant"
   (let ((n (array-dimension matrix 0)))
 	(cond
 	  ((= n 2)

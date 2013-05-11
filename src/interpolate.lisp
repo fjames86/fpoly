@@ -67,10 +67,16 @@
 		   (delta (det m))
 		   (deltas (loop for row below (array-dimension m 0) collect
 						(lagrange-determinant m vars degree row))))
-	  (fpoly-sum (mapcar (lambda (val d)
-						   (fpoly-mul (/ val delta) d))
-						 vals
-						 deltas)))))
+	  (handler-case 
+		  (fpoly-sum (mapcar (lambda (val d)
+							   (fpoly-mul (/ val delta) d))
+							 vals
+							 deltas))
+		(division-by-zero ()  (error 'fpoly-error
+									 :place "LAGRANGE-INTERPOLATE"
+									 :data "Zero lagrange determinant"))))))
+
+						   
 
 (defun lagrange-interpolate-matrix (matrices bindings degree)
   "Interpolate each entry in the list of matrices."

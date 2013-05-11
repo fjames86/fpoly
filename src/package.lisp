@@ -39,7 +39,7 @@
 		   #:det
 		   #:fpoly-det
 		   #:invert
-		   
+
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix
