@@ -20,13 +20,14 @@
 			(gen-all-powers num-vars degree))))
 
 (defun form-lagrange-matrix (points degree)
+  "Create the lagrange matrix from the variable points"
   (let ((n (base-offset (length (car points)) degree)))
 	(make-array (list n n)
 				:initial-contents (loop for point in points collect
 									   (reverse (coeff-array (reverse point) degree))))))
 
 (defun lagrange-determinant (lagrange-matrix vars degree row)
-  "Find the determinant of the matrix with the ith row replaced with the monomials"
+  "Find the determinant of the matrix with the row replaced with the monomials"
   (let* ((n (car (array-dimensions lagrange-matrix)))
 		 (mat (make-array (list n n)))
 		 (m (make-array (list (1- n) (1- n)))))
@@ -66,7 +67,6 @@
 		   (delta (det m))
 		   (deltas (loop for row below (array-dimension m 0) collect
 						(lagrange-determinant m vars degree row))))
-	  (format t "delta: ~A~%deltas: ~S~%" delta deltas)
 	  (fpoly-sum (mapcar (lambda (val d)
 						   (fpoly-mul (/ val delta) d))
 						 vals
