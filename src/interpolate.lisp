@@ -19,25 +19,11 @@
 			  (fpoly-eval-monomial point powers))
 			(gen-all-powers num-vars degree))))
 
-(defun form-lagrange-matrix (points-list n)
-  "Form a matrix of the coefficients"
-  (mapcar (lambda (point)
-			(coeff-array point n))
-		  points-list))
-
-(defun form-monomial (vars powers)
-  "Make the monomial composed of the variables and powers"
-  (let ((p (make-fpoly vars (reduce #'+ powers))))
-	(setf (apply #'fpoly-coeff p powers) 1)
-	p))
-
-(defun form-monomials (vars degree)
-  "List of all monomials for vars up to degree"
-  (let ((nvars (length vars)))
-	(reverse 
-	(mapcar (lambda (powers)
-			  (form-monomial vars powers))
-			(gen-all-powers nvars degree)))))
+(defun form-lagrange-matrix (points degree)
+  (let ((n (base-offset (length (car points)) degree)))
+	(make-array (list n n)
+				:initial-contents (loop for point in points collect
+									   (reverse (coeff-array point degree))))))
 
 ;;
 
@@ -52,14 +38,12 @@
 						 (aref mat
 							   (if (< r row) r (1+ r))
 							   (if (< c col) c (1+ c))))))
-			   (format t "m(~A) : ~A~%" col m)
 			   (det m)))
 	  (make-fpoly vars degree
 				  (reverse (loop for i below n collect
 								(* (if (= row 0) 1 -1)
 								   (if (= (mod i 2) 0) 1 -1)
 								   (sub-det i))))))))
-
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"
@@ -70,19 +54,16 @@
 				 (= (length points) (length vals) (base-offset n degree)))
 		(error 'fpoly-error
 			   :place "LAGRANGE-INTERPOLATE"
-			   :data "Number of data points does not match polynomial degree")))  
-  (let* ((m (form-lagrange-matrix points degree))
-		 (monomials (form-monomials vars degree))
-		 (delta (det m))
-		 (mats (loop for i below (length m) collect
-					(loop for j below (length m) collect
-						 (if (= j i)
-							 monomials
-							 (nth j m))))))
-	(fpoly-sum (mapcar (lambda (d val)
-						 (fpoly-mul (fpoly-div d delta) val))
-					   (mapcar #'fpoly-det mats)
-					   vals))))
+			   :data "Number of data points does not match polynomial degree"))
+	(let* ((m (form-lagrange-matrix points degree))
+		   (delta (det m))
+		   (deltas (loop for i below (array-dimension m 0) collect
+						(lagrange-determinant m vars degree i))))
+	  (format t "delta: ~A~%deltas: ~S~%" delta deltas)
+	  (fpoly-sum (mapcar (lambda (val d)
+						   (fpoly-mul (/ val delta) d))
+						 vals
+						 deltas)))))
 
 (defun lagrange-interpolate-matrix (matrices bindings degree)
   "Interpolate each entry in the list of matrices."
