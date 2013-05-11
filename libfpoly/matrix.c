@@ -162,10 +162,11 @@ int lu_decompose (int *u, int *l, int *p, int *dd, int *matrix, int n) {
 }
 
 
-int det(int *matrix, int n) {
+long int det(int *matrix, int n) {
 	int *u, *l, *p, *dd;
 	int nswaps;
-	int dt, i;
+	long int dt;
+	int i;
 	
 	u = (int *)malloc(sizeof(int)*n*n);
 	l = (int *)malloc(sizeof(int)*n*n);

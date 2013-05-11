@@ -65,7 +65,7 @@
   (matrix :pointer)
   (n :int))
 
-(defcfun ("det" libfpoly-det) :int
+(defcfun ("det" libfpoly-det) :long
   (matrix :pointer)
   (n :int))
 
