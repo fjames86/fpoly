@@ -191,6 +191,38 @@ long int det(int *matrix, int n) {
 	return dt;
 }
 
+void det_list (long int *dets, int *mats, int nmats, int n) {
+	int msize = n*n;
+	int i, j;
+	int *u, *l, *p, *dd;
+	int nswaps, dt;
+	
+	u = (int *)malloc(sizeof(int)*n*n);
+	l = (int *)malloc(sizeof(int)*n*n);
+	p = (int *)malloc(sizeof(int)*n*n);
+	dd = (int *)malloc(sizeof(int)*n);
+
+	
+	for (i=0; i < nmats; i++) {		
+		nswaps = lu_decompose(u, l, p, dd, mats + msize*i, n);
+
+		dt = (((nswaps % 2) == 0) ? 1 : -1);
+		for(j=0; j < n; j++) {
+			dt *= aref(u, j, j, n);
+			dt *= aref(l, j, j, n);
+			dt /= dd[j];
+		}
+
+		dets[i] = dt;
+	}
+
+
+	free(u);
+	free(l);
+	free(p);
+	free(dd);
+}
+
 
 		
 	

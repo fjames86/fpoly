@@ -69,6 +69,12 @@
   (matrix :pointer)
   (n :int))
 
+(defcfun ("det_list" libfpoly-det-list) :void
+  (dets :pointer)
+  (mats :pointer)
+  (nmats :int)
+  (n :int))
+
 
 ;;; ---------------- Lisp wrappers -------------------------
 
@@ -141,6 +147,24 @@
 	  (libfpoly-det m n))))
 
 
+(defun %det-list (matrices)
+  (let* ((nmats (length matrices))
+		 (n (array-dimension (car matrices) 0))
+		 (msize (* n n)))
+	(with-foreign-object (dets :long nmats)
+	  (with-foreign-object (mats :int (* nmats n n))
+		(do ((ms matrices (cdr ms))
+			 (i 0 (1+ i)))
+			((or (null ms) (= i nmats)))
+		  (dotimes (j n)
+			(dotimes (k n)
+			  (setf (mem-aref mats :int (+ (* i msize) (maref j k n)))
+					(aref (car ms) j k)))))
+
+		(libfpoly-det-list dets mats nmats n)
+
+		(loop for i below nmats collect
+			 (mem-aref dets :int i))))))
 
 
 

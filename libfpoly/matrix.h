@@ -13,6 +13,7 @@ int pivot(int *a, int *b, int i, int n);
 int lu_decompose (int *u, int *l, int *p, int *dd, int *matrix, int n);
 
 long int det(int *matrix, int n);
+void det_list (long int *dets, int *mats, int nmats, int n);
 
 
 #endif
