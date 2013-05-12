@@ -87,18 +87,34 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		  (setf prod (* prod p))
 		  (push p pms))))))
 
-(defun choose-binding (vars polys prime)
+(defun not-in (bindings forbidden-bindings)
+  (every (lambda (fbinding)
+		   (not (every (lambda (b)
+						 (destructuring-bind (var . val) b
+						   (= val (cdr (assoc var fbinding)))))
+					   bindings)))
+		 forbidden-bindings))
+  		   
+(defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
 		(mapcar (lambda (var)
 				  (cons var (- (random (* 2 prime)) prime)))
 				  vars)
 		(mapcar (lambda (var)
 				  (cons var (- (random (* 2 prime)) prime)))
-				vars)))
-	  ((every (lambda (p)
-				(not (zerop (fpoly-eval p bindings))))
-			  polys)
-	   bindings)))
+				vars))
+	   (counter 0 (1+ counter)))
+	  ((and (every (lambda (p)
+					 (not (zerop (fpoly-eval p bindings))))
+				   polys)
+			(not-in bindings forbidden-bindings)
+			(< counter max-attempts))
+	   bindings)
+	(if (= counter max-attempts)
+		(error 'fpoly-error
+			   :place "CHOOSE-BINDINGS"
+			   :data "Exceeded max attempts at finding some bindings"))))
+	
 
 (defun choose-bindings (mat &key (degree 1) (prime 5))
   "Given a matrix, compute a set of bindings for the symbols"
@@ -110,9 +126,13 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 					  (pushnew var vars))
 					(fpoly-vars entry))
 			(push entry polys))))
-	
-	(loop for i below (base-offset (length vars) degree) collect
-		 (choose-binding vars polys prime))))
+
+	(let ((n (base-offset (length vars) degree)))
+	(do ((i 0 (1+ i))
+		 (bindings nil (cons (choose-binding vars polys prime bindings)
+							 bindings)))
+		((= i n) bindings)))))
+
 
 (defun find-max-degree (mat)
   "Sum the degree of the diagonal elements of the matrix."
