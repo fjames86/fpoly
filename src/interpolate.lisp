@@ -55,34 +55,46 @@
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"
-  (let* ((n (length vars))
-		 (need-n (base-offset n degree)))
-	(unless (and (every (lambda (point)
-						  (= (length point) n))
-						points)
-				 (>= (length points) need-n)
-				 (>= (length vals) need-n))
-		(error 'fpoly-error
-			   :place "LAGRANGE-INTERPOLATE"
-			   :data "Number of data points does not match polynomial degree"))
-	(let ((points (first-n points need-n))
-		  (vals (first-n vals need-n)))
-	(let* ((m (form-lagrange-matrix points degree))
-		   (delta (det m)))
-	  (if (zerop delta)
+  (cond
+	((zerop degree)
+	 (if (apply #'= vals)
+		 (car vals)
+		 (error 'fpoly-error
+				:place "LAGRANGE-INTERPOLATE"
+				:data "No solution to zero degree interpolation (all points different)")))
+	((< degree 0)
+	 (error 'fpoly-error
+			:place "LAGRANGE-INTERPOLATE"
+			:data "Negative degree"))
+	(t
+	  (let* ((n (length vars))
+			 (need-n (base-offset n degree)))
+		(unless (and (every (lambda (point)
+							  (= (length point) n))
+							points)
+					 (>= (length points) need-n)
+					 (>= (length vals) need-n))
 		  (error 'fpoly-error
 				 :place "LAGRANGE-INTERPOLATE"
-				 :data "Zero determinant of lagrange matrix ~A" m))
-	  (let ((deltas (loop for row below (array-dimension m 0) collect
-						 (lagrange-determinant m vars degree row))))
-		(handler-case 
-			(fpoly-sum (mapcar (lambda (val d)
-								 (fpoly-mul (/ val delta) d))
-							   vals
-							 deltas))
-		  (division-by-zero ()  (error 'fpoly-error
-									   :place "LAGRANGE-INTERPOLATE"
-									   :data "Divison by zero detetected"))))))))
+				 :data "Number of data points does not match polynomial degree"))
+		(let ((points (first-n points need-n))
+			  (vals (first-n vals need-n)))
+		  (let* ((m (form-lagrange-matrix points degree))
+				 (delta (det m)))
+			(if (zerop delta)
+				(error 'fpoly-error
+					   :place "LAGRANGE-INTERPOLATE"
+					   :data "Zero determinant of lagrange matrix ~A" m))
+			(let ((deltas (loop for row below (array-dimension m 0) collect
+							   (lagrange-determinant m vars degree row))))
+			  (handler-case 
+				  (fpoly-sum (mapcar (lambda (val d)
+									   (fpoly-mul (/ val delta) d))
+									 vals
+									 deltas))
+				(division-by-zero ()  (error 'fpoly-error
+											 :place "LAGRANGE-INTERPOLATE"
+											 :data "Divison by zero detetected"))))))))))
 
 						   
 

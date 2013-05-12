@@ -306,13 +306,15 @@ The values may be other polynomials or numbers."
 
 (defun highest-degree (poly)
   "Find the highest degree of the non-zero coefficients"
-  (let ((degree 0))
+  (let ((degree 0)
+		(pws nil))
 	(docoeffs (poly coeff powers)
 	  (unless (zerop coeff)
 		(let ((d (reduce #'+ powers)))
 		  (if (> d degree)
-			  (setf degree d)))))
-	degree))
+			  (setf degree d
+					pws powers)))))
+	(values degree pws)))
 
 (defun involved-vars (poly)
   "Find the variables with non-zero coefficients and non-zero powers"

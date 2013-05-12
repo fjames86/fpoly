@@ -133,6 +133,8 @@ into a solution matrix."
 	(doentries (degree-matrix entry)
 	  (if (> entry max-degree)
 		  (setf max-degree entry)))
+
+	(fpoly-debug "degree-matrix: ~A~%" degree-matrix)
 	
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
@@ -171,7 +173,11 @@ into a solution matrix."
 	(if (zerop try-count)
 		nil
 		(handler-case (try-solve)
-		  (fpoly-error () (solve-system mat :try-count (1- try-count)))))))
+		  (fpoly-error (err)
+			(fpoly-debug "Failed at ~A with error ~A~%"
+						 (fpoly-error-place err)
+						 (fpoly-error-data err))
+			(solve-system mat :try-count (1- try-count)))))))
 
 
 ;; --------------------- printers ---------------------
@@ -226,9 +232,21 @@ into a solution matrix."
 	  (rotatef (aref mat r1 col) (aref mat r2 col)))
 	mat))
 
+(defun echelon? (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(let ((solved t))
+	  (dotimes (col n)
+		(let ((row (1+ col)))
+		  (loop while (and (< row n) solved) do
+			   (if (not (zerop (aref matrix row col)))
+				   (setf solved nil)
+				   (incf row)))))
+	  solved)))
+
 (defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton alg."
+  (unless (echelon? a)
 	(let ((n (car (array-dimensions a)))
 		  (swaps 0)
 		  (muls 1))
@@ -257,7 +275,9 @@ using the fraction free Gaussian Eliminaton alg."
 			 (setf (aref a j i) 0))
 		(setf muls (* muls (aref a i i)))
 		(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i))))))
-	  (values a swaps muls)))
+	  (values a swaps muls))))
+
+;; ----------
 
 (defun deg-add (a b)
   (max a b))
@@ -409,6 +429,7 @@ using the fraction free Gaussian Eliminaton alg."
 				(mmul l (mmul (invert d) u)))))))
 
 (defun lu-decompose (matrix)
+  "Decompose a SQUARE matrix into u l p dd nswaps values"
   (let* ((n (array-dimension matrix 0))
 		 (u (copy-array matrix))
 		 (l (make-identity n))
