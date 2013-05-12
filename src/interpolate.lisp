@@ -67,6 +67,10 @@
 		   (delta (det m))
 		   (deltas (loop for row below (array-dimension m 0) collect
 						(lagrange-determinant m vars degree row))))
+	  (if (zerop delta)
+		  (error 'fpoly-error
+				 :place "LAGRANGE-INTERPOLATE"
+				 :data "Zero determinant of lagrange matrix ~A" m))
 	  (handler-case 
 		  (fpoly-sum (mapcar (lambda (val d)
 							   (fpoly-mul (/ val delta) d))
@@ -74,7 +78,7 @@
 							 deltas))
 		(division-by-zero ()  (error 'fpoly-error
 									 :place "LAGRANGE-INTERPOLATE"
-									 :data "Zero lagrange determinant"))))))
+									 :data "Zero determinant of lagrange matrix ~A" m))))))
 
 						   
 
