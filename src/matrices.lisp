@@ -134,8 +134,6 @@ into a solution matrix."
 	  (if (> entry max-degree)
 		  (setf max-degree entry)))
 
-	(fpoly-debug "degree-matrix: ~A~%" degree-matrix)
-	
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
@@ -211,20 +209,18 @@ into a solution matrix."
 
 (defun pivot (mat i n)
   "Find the first row >= i with element (i,j) non-zero, then swap the rows"
-  (labels ((rec (row)
-			 (cond
-			   ((= row n)
-				(error 'fpoly-error
-					   :place "PIVOT"
-					   :data (format nil
-									 "Unsolveable matrix ~A, all zeroes in pivot column"
-									 mat)))
-			   ((zerop (aref mat row i))
-				(rec (1+ row)))
-			   (t (dotimes (col (1+ n))
-					(rotatef (aref mat i col) (aref mat row col)))))))
-	(rec i)))
-
+  (let ((row (1+ i))
+		(canpivot t))
+	(loop while (and (< row n) canpivot) do
+		 (if (zerop (aref mat row i))
+			 (incf row)
+			 (setf canpivot nil)))
+	(if (= row n)
+		(error 'fpoly-error
+			   :place "PIVOT"
+			   :data (format nil "Unsolveable matrix ~A all zeroes in pivot column ~A~%" mat i))
+		(swap-rows mat i row))))
+	
 (defun swap-rows (mat r1 r2)
   "Destructively swaps elements in rows r1 and r2"
   (let ((n (array-dimension mat 0)))
@@ -233,6 +229,7 @@ into a solution matrix."
 	mat))
 
 (defun echelon? (matrix)
+  "Check to see if already in echelon form."
   (let ((n (array-dimension matrix 0)))
 	(let ((solved t))
 	  (dotimes (col n)
@@ -245,8 +242,9 @@ into a solution matrix."
 
 (defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,
-using the fraction free Gaussian Eliminaton alg."
+using the fraction free Gaussian Eliminaton algorithm."
   (unless (echelon? a)
+	(fpoly-debug "Computing echelon ~A~%" a)
 	(let ((n (car (array-dimensions a)))
 		  (swaps 0)
 		  (muls 1))
@@ -448,7 +446,7 @@ using the fraction free Gaussian Eliminaton alg."
 			(if (= kpivot n)
 				(error 'fpoly-error
 					   :place "LU-DECOMPOSE"
-					   :data "Cant pivot matrix")
+					   :data (format nil "Unable to pivot matrix ~A" matrix))
 				(loop for col from k to (1- n) do
 					 (progn
 					   (rotatef (aref u k col) (aref u kpivot col))

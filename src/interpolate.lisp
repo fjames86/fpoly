@@ -61,7 +61,7 @@
 		 (car vals)
 		 (error 'fpoly-error
 				:place "LAGRANGE-INTERPOLATE"
-				:data "No solution to zero degree interpolation (all points different)")))
+				:data (format nil "No solution to zero degree interpolation (all points ~A different)" vals))))
 	((< degree 0)
 	 (error 'fpoly-error
 			:place "LAGRANGE-INTERPOLATE"
@@ -84,7 +84,7 @@
 			(if (zerop delta)
 				(error 'fpoly-error
 					   :place "LAGRANGE-INTERPOLATE"
-					   :data "Zero determinant of lagrange matrix ~A" m))
+					   :data (format nil "Zero determinant of lagrange matrix ~A" m)))
 			(let ((deltas (loop for row below (array-dimension m 0) collect
 							   (lagrange-determinant m vars degree row))))
 			  (handler-case 
