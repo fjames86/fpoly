@@ -55,14 +55,18 @@
 
 (defun lagrange-interpolate (vars points vals degree)
   "Find the minimal polynomial with the degree that goes through the points with values"
-  (let ((n (length vars)))
+  (let* ((n (length vars))
+		 (need-n (base-offset n degree)))
 	(unless (and (every (lambda (point)
 						  (= (length point) n))
 						points)
-				 (= (length points) (length vals) (base-offset n degree)))
+				 (>= (length points) need-n)
+				 (>= (length vals) need-n))
 		(error 'fpoly-error
 			   :place "LAGRANGE-INTERPOLATE"
 			   :data "Number of data points does not match polynomial degree"))
+	(let ((points (first-n points need-n))
+		  (vals (first-n vals need-n)))
 	(let* ((m (form-lagrange-matrix points degree))
 		   (delta (det m)))
 	  (if (zerop delta)
@@ -78,11 +82,11 @@
 							 deltas))
 		  (division-by-zero ()  (error 'fpoly-error
 									   :place "LAGRANGE-INTERPOLATE"
-									   :data "Divison by zero detetected")))))))
+									   :data "Divison by zero detetected"))))))))
 
 						   
 
-(defun lagrange-interpolate-matrix (matrices bindings degree)
+(defun lagrange-interpolate-matrix (matrices bindings degree-matrix)
   "Interpolate each entry in the list of matrices."
   (let ((n (mat-size (car matrices)))
 		(vars (mapcar #'car (car bindings)))
@@ -96,7 +100,7 @@
 										  (mapcar (lambda (matrix)
 													(aref matrix i j))
 												  matrices)
-										  degree)))
+										  (aref degree-matrix i j))))
 	  mat)))
 
 

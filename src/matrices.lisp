@@ -128,7 +128,12 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 (defun solve-matrix (mat prime)
   "Choose some bindings, evaluate at each binding, solve using ffge and recombine back
 into a solution matrix."
-  (let ((max-degree (find-max-degree mat)))
+  (let ((degree-matrix (degree-matrix mat))
+		(max-degree 0))
+	(doentries (degree-matrix entry)
+	  (if (> entry max-degree)
+		  (setf max-degree entry)))
+	
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
@@ -142,7 +147,7 @@ into a solution matrix."
 						  evaled-mats)))
 		  (lagrange-interpolate-matrix ms
 									   binding-list
-									   max-degree))))))
+									   degree-matrix))))))
 
 
 (defun combine-matrices (mat-list primes)
@@ -269,7 +274,7 @@ using the fraction free Gaussian Eliminaton alg."
 (defun degree-matrix (matrix)
   "Find the degree of resulting polynomials after ffge operation"
 	(let* ((n (array-dimension matrix 0))
-		   (a (make-matrix n)))
+		   (a (make-matrix n)))		   
 	  ;; setup
 	  (dotimes (i n)
 		(dotimes (j (1+ n))

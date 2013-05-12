@@ -133,6 +133,13 @@ arguments."
 	  (princ x s))
 	s))
 
+(defun first-n (list n)
+  "Return the first n elements of the list"
+  (do ((i 0 (1+ i))
+	   (list list (cdr list))
+	   (vals nil (cons (car list) vals)))
+	  ((or (= i n) (null list)) (reverse vals))))
+
 ;;; ---------------- some useful number routines -----------
 
 ;; several prime number related functions follow
