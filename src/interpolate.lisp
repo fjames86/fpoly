@@ -64,21 +64,21 @@
 			   :place "LAGRANGE-INTERPOLATE"
 			   :data "Number of data points does not match polynomial degree"))
 	(let* ((m (form-lagrange-matrix points degree))
-		   (delta (det m))
-		   (deltas (loop for row below (array-dimension m 0) collect
-						(lagrange-determinant m vars degree row))))
+		   (delta (det m)))
 	  (if (zerop delta)
 		  (error 'fpoly-error
 				 :place "LAGRANGE-INTERPOLATE"
 				 :data "Zero determinant of lagrange matrix ~A" m))
-	  (handler-case 
-		  (fpoly-sum (mapcar (lambda (val d)
-							   (fpoly-mul (/ val delta) d))
-							 vals
+	  (let ((deltas (loop for row below (array-dimension m 0) collect
+						 (lagrange-determinant m vars degree row))))
+		(handler-case 
+			(fpoly-sum (mapcar (lambda (val d)
+								 (fpoly-mul (/ val delta) d))
+							   vals
 							 deltas))
-		(division-by-zero ()  (error 'fpoly-error
-									 :place "LAGRANGE-INTERPOLATE"
-									 :data "Zero determinant of lagrange matrix ~A" m))))))
+		  (division-by-zero ()  (error 'fpoly-error
+									   :place "LAGRANGE-INTERPOLATE"
+									   :data "Divison by zero detetected")))))))
 
 						   
 
