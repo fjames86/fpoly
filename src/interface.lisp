@@ -8,6 +8,7 @@
 
 (in-package #:fpoly-ffi)
 
+(defparameter *default-libfpoly-pathname* (merge-pathnames "../libfpoly/"))
 
 (defmacro load-libfpoly (&optional search-path)
   "Load the libfpoly library"
@@ -20,7 +21,7 @@
 	   (t "libfpoly.so"))
 	 (use-foreign-library libfpoly)))
 
-;(load-libfpoly)
+(load-libfpoly *default-libfpoly-pathname*)
 
   
 ;;; -------------- type definitions -----------------------
@@ -165,9 +166,3 @@
 
 		(loop for i below nmats collect
 			 (mem-aref dets :int i))))))
-
-
-
-								 
-					   
-
