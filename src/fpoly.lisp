@@ -7,7 +7,7 @@
 (in-package #:fpoly)
 
 
-(defparameter *fpoly-debug* nil)
+(defparameter *fpoly-debug* t)
 
 (defun fpoly-debug (control-string &rest format-args)
   (if *fpoly-debug*

@@ -162,7 +162,7 @@ into a solution matrix."
 										   (solve-matrix (matrix-modulo mat prime) prime))
 										 primes)
 								 primes))))
-	(format t "Attempting to solve with ~A attempts remaining...~%" try-count)
+	(fpoly-debug "Attempting to solve with ~A attempts remaining...~%" try-count)
 	(if (zerop try-count)
 		nil
 		(handler-case (try-solve)
