@@ -105,6 +105,9 @@
    (coeffs :reader fpoly-coeffs :writer set-fpoly-coeffs :initarg :coeffs)
    (powers :reader fpoly-powers :initarg :powers)))
 
+(defmethod fpoly-degree ((p number))
+  0)
+
 (defun make-fpoly (variables degree &optional coeffs)  
   "Make an fpoly object."
   (let* ((vars (cond

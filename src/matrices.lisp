@@ -254,6 +254,44 @@ using the fraction free Gaussian Eliminaton alg."
 		(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i))))))
 	  (values a swaps muls)))
 
+(defun deg-add (a b)
+  (max a b))
+
+(defun deg-sub (a b)
+  (max a b))
+
+(defun deg-mul (a b)
+  (+ a b))
+
+(defun deg-div (a b)
+  (- a b))
+
+(defun degree-matrix (matrix)
+  "Find the degree of resulting polynomials after ffge operation"
+	(let* ((n (array-dimension matrix 0))
+		   (a (make-matrix n)))
+	  ;; setup
+	  (dotimes (i n)
+		(dotimes (j (1+ n))
+		  (setf (aref a i j) (fpoly-degree (aref matrix i j)))))
+
+	  ;; assume already pivoted
+	  (dotimes (i (1- n))
+		
+		(loop for j from (1+ i) to (1- n) do
+			 (setf (aref a j n) (deg-sub (deg-mul (aref a i i) (aref a j n))
+										 (deg-mul (aref a j i) (aref a i n))))
+			 (if (> i 0) 
+				 (setf (aref a j n) (deg-div (aref a j n) (aref a (1- i) (1- i)))))
+			 (loop for k from (1+ i) to (1- n) do
+				  (setf (aref a j k) (deg-sub (deg-mul (aref a i i) (aref a j k))
+											  (deg-mul (aref a j i) (aref a i k))))
+				  (if (> i 0)
+					  (setf (aref a j k) (deg-div (aref a j k) (aref a (1- i) (1- i))))))
+			 (setf (aref a j i) 0)))
+	  a))
+
+
 (defun make-pivot (matrix)
   (let ((n (car (array-dimensions matrix))))
 	(let ((p (make-identity n)))
