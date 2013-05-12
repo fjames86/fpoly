@@ -157,6 +157,7 @@ into a solution matrix."
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
+	  (fpoly-debug "Chose bindings ~A~%" binding-list)
 	  (let ((evaled-mats (mapcar (lambda (bindings)
 								   (eval-matrix mat
 												bindings

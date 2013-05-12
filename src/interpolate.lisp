@@ -108,15 +108,19 @@
 	(let ((mat (make-matrix n)))
 	  (doentries (mat entry i j)
 		(if (> j i)
-			(format t "interpolating with points ~A~%" 										  (mapcar (lambda (matrix)
-													(aref matrix i j))
-												  matrices)))
+			(format t "interpolating with points ~A~%"
+					(mapcar (lambda (matrix)
+							  (aref matrix i j))
+							matrices)))
 		(setf entry (lagrange-interpolate vars
 										  points
 										  (mapcar (lambda (matrix)
 													(aref matrix i j))
 												  matrices)
-										  (aref degree-matrix i j))))
+										  (let ((d (aref degree-matrix i j)))
+											(if (zerop d)
+												(aref degree-matrix (1- n) (1- n))
+												d)))))
 	  mat)))
 
 
