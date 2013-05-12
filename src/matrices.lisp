@@ -160,9 +160,9 @@ into a solution matrix."
 										   primes)))
 	m))
 
-(defun solve-system (mat &key (try-count 10))
+(defun solve-system (mat &key (try-count 100) (lowest-prime 5))
   (labels ((try-solve ()
-			 (let ((primes (choose-primes mat)))
+			 (let ((primes (choose-primes mat :lowest-prime lowest-prime)))
 			   (combine-matrices (mapcar (lambda (prime)
 										   (solve-matrix (matrix-modulo mat prime) prime))
 										 primes)
@@ -175,7 +175,10 @@ into a solution matrix."
 			(fpoly-debug "Failed at ~A with error ~A~%"
 						 (fpoly-error-place err)
 						 (fpoly-error-data err))
-			(solve-system mat :try-count (1- try-count)))))))
+			(solve-system mat
+						  :try-count (1- try-count)
+						  :lowest-prime lowest-prime))))))
+						  
 
 
 ;; --------------------- printers ---------------------
@@ -244,7 +247,6 @@ into a solution matrix."
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton algorithm."
   (unless (echelon? a)
-	(fpoly-debug "Computing echelon ~A~%" a)
 	(let ((n (car (array-dimensions a)))
 		  (swaps 0)
 		  (muls 1))
