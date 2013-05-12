@@ -58,6 +58,7 @@
   (num :int)
   (n :int))
 
+;; shouldn't need to call this directly
 (defcfun ("lu_decompose" libfpoly-lu-decompose) :int
   (u :pointer)
   (l :pointer)
@@ -110,6 +111,7 @@
 		  (list m v))))))
 
 (defun %ffge-list (matrices vectors &optional gpu)
+  "FFI call to compute the echelon form of a list of matrices/vectors."
   (let* ((num (length matrices))
 		 (n (array-dimension (car matrices) 0)))
 	(with-foreign-object (mats :int (* num n n))
@@ -139,6 +141,7 @@
 			   (list m v)))))))
 
 (defun %det (matrix)
+  "FFI call to matrix determinant"
   (let ((n (array-dimension matrix 0)))
 	(with-foreign-object (m :int (* n n))
 	  (dotimes (i n)
@@ -149,6 +152,7 @@
 
 
 (defun %det-list (matrices)
+  "FFI call to compute determinants of a list of matrices"
   (let* ((nmats (length matrices))
 		 (n (array-dimension (car matrices) 0))
 		 (msize (* n n)))

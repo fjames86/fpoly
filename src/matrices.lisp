@@ -155,12 +155,19 @@ into a solution matrix."
 										   primes)))
 	m))
 
-(defun solve-system (mat)  
-  (let ((primes (choose-primes mat)))
-	(combine-matrices (mapcar (lambda (prime)
-								(solve-matrix (matrix-modulo mat prime) prime))
-							  primes)
-					  primes)))
+(defun solve-system (mat &key (try-count 10))
+  (labels ((try-solve ()
+			 (let ((primes (choose-primes mat)))
+			   (combine-matrices (mapcar (lambda (prime)
+										   (solve-matrix (matrix-modulo mat prime) prime))
+										 primes)
+								 primes))))
+	(format t "Attempting to solve with ~A attempts remaining...~%" try-count)
+	(if (zerop try-count)
+		nil
+		(handler-case (try-solve)
+		  (fpoly-error () (solve-system mat :try-count (1- try-count)))))))
+
 
 ;; --------------------- printers ---------------------
 

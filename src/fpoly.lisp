@@ -6,6 +6,13 @@
 
 (in-package #:fpoly)
 
+
+(defparameter *fpoly-debug* nil)
+
+(defun fpoly-debug (control-string &rest format-args)
+  (if *fpoly-debug*
+	  (apply #'format *fpoly-debug* control-string format-args)))
+
 ;;; ------------- offset calculations -------
 
 (defun base-offset (num-vars degree)

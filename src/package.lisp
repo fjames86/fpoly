@@ -64,7 +64,8 @@
 		   #:%make-fpoly
 		   #:%ffge
 		   #:%ffge-list
-		   #:%det))
+		   #:%det
+		   #:%det-list))
 
 
 
