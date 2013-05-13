@@ -226,6 +226,9 @@ Always choose the (absolute value) which is smaller of the two options"
 (defun mod-mul (x y prime)
   (fpoly-mod (* (fpoly-mod x prime) (fpoly-mod y prime)) prime))
 
+(defun mod-div (x y prime)
+  (mod-mul x (egcd y prime) prime))
+
 (defun replace-car (list replace-alist prime)
   (cond
 	((null list) nil)
@@ -246,8 +249,8 @@ Always choose the (absolute value) which is smaller of the two options"
 
 (defmacro with-modular-arithmetic (prime &body body)
   (let ((gprime (gensym "PRIME")))
-	(if prime
-		`(let ((,gprime ,prime))
+	`(let ((,gprime ,prime))
+	   (if ,gprime
 		   (progn
 			 ,@(mapcar (lambda (exp)
 						 (replace-car exp
@@ -255,8 +258,8 @@ Always choose the (absolute value) which is smaller of the two options"
 										(- . mod-sub)
 										(* . mod-mul))
 									  gprime))
-					   body)))
-		`(progn ,@body))))
+					   body))
+		   (progn ,@body)))))
 	   
 
 ;; ------------------ expt -------------------------
