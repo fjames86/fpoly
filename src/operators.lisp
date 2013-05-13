@@ -256,7 +256,8 @@ Always choose the (absolute value) which is smaller of the two options"
 						 (replace-car exp
 									  '((+ . mod-add)
 										(- . mod-sub)
-										(* . mod-mul))
+										(* . mod-mul)
+										(/ . mod-div))
 									  gprime))
 					   body))
 		   (progn ,@body)))))
