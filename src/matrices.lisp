@@ -264,7 +264,7 @@ into a solution matrix."
 				   (incf row)))))
 	  solved)))
 
-(defun echelon (a)
+(defun echelon (a &optional prime)
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton algorithm."
   (unless (echelon? a)
@@ -279,15 +279,17 @@ using the fraction free Gaussian Eliminaton algorithm."
 			  (incf swaps)))
 		
 		(loop for j from (1+ i) to (1- n) do
-			 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
-								   (* (aref a j i) (aref a i n))))
+			 (with-modular-arithmetic prime
+			   (setf (aref a j n) (- (* (aref a i i) (aref a j n))
+									 (* (aref a j i) (aref a i n)))))
 			 (if (> i 0) 
 				 (multiple-value-bind (q r) (truncate (aref a j n) (aref a (1- i) (1- i)))
 				   (declare (ignore r)) ; should be zero
 				   (setf (aref a j n) q)))
 			 (loop for k from (1+ i) to (1- n) do
-				  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
-										(* (aref a j i) (aref a i k))))
+				  (with-modular-arithmetic prime
+					(setf (aref a j k) (- (* (aref a i i) (aref a j k))
+										  (* (aref a j i) (aref a i k)))))
 				  (if (> i 0)
 					  (multiple-value-bind (q r) (truncate (aref a j k)
 														   (aref a (1- i) (1- i)))

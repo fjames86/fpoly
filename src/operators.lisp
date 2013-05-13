@@ -217,6 +217,48 @@ Always choose the (absolute value) which is smaller of the two options"
 					 (fpoly-mod n divisor))
 				   (fpoly-coeffs poly))))
 
+(defun mod-add (x y prime)
+  (fpoly-mod (+ (fpoly-mod x prime) (fpoly-mod y prime)) prime))
+
+(defun mod-sub (x y prime)
+  (fpoly-mod (- (fpoly-sub x prime) (fpoly-mod y prime)) prime))
+
+(defun mod-mul (x y prime)
+  (fpoly-mod (* (fpoly-mod x prime) (fpoly-mod y prime)) prime))
+
+(defun replace-car (list replace-alist prime)
+  (cond
+	((null list) nil)
+	((listp list)
+	 (let* ((c (car list))
+			(val (assoc c replace-alist)))
+	   (if val
+		   (append (cons (cdr val)
+						 (mapcar (lambda (x)
+								   (replace-car x replace-alist prime))
+								 (cdr list)))
+				   (list prime))
+		   (cons c
+				 (mapcar (lambda (x)
+						   (replace-car x replace-alist prime))
+						 (cdr list))))))
+	(t list)))
+
+(defmacro with-modular-arithmetic (prime &body body)
+  (let ((gprime (gensym "PRIME")))
+	(if prime
+		`(let ((,gprime ,prime))
+		   (progn
+			 ,@(mapcar (lambda (exp)
+						 (replace-car exp
+									  '((+ . mod-add)
+										(- . mod-sub)
+										(* . mod-mul))
+									  gprime))
+					   body)))
+		`(progn ,@body))))
+	   
+
 ;; ------------------ expt -------------------------
 
 (defmethod fpoly-expt ((poly number) (n integer))
