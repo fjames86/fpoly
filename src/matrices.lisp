@@ -454,7 +454,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 		(values (mmul p matrix)
 				(mmul l (mmul (invert d) u)))))))
 
-(defun lu-decompose (matrix)
+(defun lu-decompose (matrix &optional prime)
   "Decompose a SQUARE matrix into u l p dd nswaps values"
   (let* ((n (array-dimension matrix 0))
 		 (u (copy-array matrix))
@@ -481,14 +481,16 @@ using the fraction free Gaussian Eliminaton algorithm."
 					   (rotatef (aref p k col) (aref p kpivot col)))))
 			(incf nswaps)))
 	  (setf (aref l k k) (aref u k k)
-			(svref dd k) (* oldpivot (aref u k k)))
+			(svref dd k) (with-modular-arithmetic prime
+						   (* oldpivot (aref u k k))))
 	  (loop for i from (1+ k) to (1- n) do
 		   (progn
 			 (setf (aref l i k) (aref u i k))
 			 (loop for j from (1+ k) to (1- n) do
-				  (multiple-value-bind (q r) (truncate (- (* (aref u k k) (aref u i j))
-														  (* (aref u k j) (aref u i k)))
-													   oldpivot)
+				  (multiple-value-bind (q r) (with-modular-arithmetic prime
+											   (truncate (- (* (aref u k k) (aref u i j))
+															(* (aref u k j) (aref u i k)))
+														 oldpivot))
 					(unless (zerop r)
 					  (error 'fpoly-error
 							 :place "LU-DECOMPOSE"
@@ -499,24 +501,27 @@ using the fraction free Gaussian Eliminaton algorithm."
 	(setf (svref dd (1- n)) oldpivot)
 	(values u l p dd nswaps)))
 
-(defun lu-det (matrix)
+(defun lu-det (matrix &optional prime)
   "Compute matrix determinant using lu-decompose"
   (let ((n (array-dimension matrix 0)))
-	(multiple-value-bind (u l p dd nswaps) (lu-decompose matrix)
+	(multiple-value-bind (u l p dd nswaps) (lu-decompose matrix prime)
 	  (declare (ignore p)) ;; pivot matrix, don't need it
 	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
-		(dotimes (i n)
-		  (setf det (* det (aref u i i) (aref l i i)))
-		  (setf det (/ det (svref dd i))))
+		(with-modular-arithmetic prime
+		  (dotimes (i n)
+			(setf det (* det (aref u i i)))
+			(setf det (* det (aref l i i)))
+			(setf det (/ det (svref dd i)))))
 		det))))
 	  
-(defun det (matrix)
+(defun det (matrix &optional prime)
   "Matrix determinant"
   (let ((n (array-dimension matrix 0)))
 	(cond
 	  ((= n 2)
-	   (- (* (aref matrix 0 0) (aref matrix 1 1))
-		  (* (aref matrix 0 1) (aref matrix 1 0))))
-	  (t (lu-det matrix)))))
+	   (with-modular-arithmetic prime
+		 (- (* (aref matrix 0 0) (aref matrix 1 1))
+			(* (aref matrix 0 1) (aref matrix 1 0)))))
+	  (t (lu-det matrix prime)))))
 
 
