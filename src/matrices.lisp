@@ -283,7 +283,8 @@ using the fraction free Gaussian Eliminaton algorithm."
 			   (setf (aref a j n) (- (* (aref a i i) (aref a j n))
 									 (* (aref a j i) (aref a i n)))))
 			 (if (> i 0) 
-				 (multiple-value-bind (q r) (truncate (aref a j n) (aref a (1- i) (1- i)))
+				 (multiple-value-bind (q r) (with-modular-arithmetic prime
+											  (truncate (aref a j n) (aref a (1- i) (1- i))))
 				   (declare (ignore r)) ; should be zero
 				   (setf (aref a j n) q)))
 			 (loop for k from (1+ i) to (1- n) do
@@ -291,13 +292,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 					(setf (aref a j k) (- (* (aref a i i) (aref a j k))
 										  (* (aref a j i) (aref a i k)))))
 				  (if (> i 0)
-					  (multiple-value-bind (q r) (truncate (aref a j k)
-														   (aref a (1- i) (1- i)))
+					  (multiple-value-bind (q r) (with-modular-arithmetic prime
+												   (truncate (aref a j k)
+															 (aref a (1- i) (1- i))))
 						(declare (ignore r))
 						(setf (aref a j k) q))))
 			 (setf (aref a j i) 0))
-		(setf muls (* muls (aref a i i)))
-		(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i))))))
+		(with-modular-arithmetic prime
+		  (setf muls (* muls (aref a i i)))
+		  (if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
 	  (values a swaps muls))))
 
 ;; ----------
