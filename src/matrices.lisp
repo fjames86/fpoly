@@ -98,14 +98,14 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 (defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
 		(mapcar (lambda (var)
-				  (cons var (- (random (* 2 prime)) prime)))
+				  (cons var (fpoly-mod (random (* 2 prime)) prime)))
 				  vars)
 		(mapcar (lambda (var)
-				  (cons var (- (random (* 2 prime)) prime)))
+				  (cons var (fpoly-mod (random (* 2 prime)) prime)))
 				vars))
 	   (counter 0 (1+ counter)))
 	  ((and (every (lambda (p)
-					 (not (zerop (fpoly-eval p bindings))))
+					 (not (zerop (fpoly-eval-mod p bindings prime))))
 				   polys)
 			(not-in bindings forbidden-bindings)
 			(< counter max-attempts))
@@ -164,11 +164,12 @@ into a solution matrix."
 												:prime prime))
 								 binding-list)))
 		(let ((ms (mapcar (lambda (evaled-mat)
-							(echelon evaled-mat))
+							(echelon evaled-mat prime))
 						  evaled-mats)))
 		  (lagrange-interpolate-matrix ms
 									   binding-list
-									   degree-matrix))))))
+									   degree-matrix
+									   prime))))))
 
 
 (defun combine-matrices (mat-list primes)

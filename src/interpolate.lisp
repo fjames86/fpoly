@@ -26,7 +26,7 @@
 				:initial-contents (loop for point in points collect
 									   (reverse (coeff-array (reverse point) degree))))))
 
-(defun lagrange-determinant (lagrange-matrix vars degree row)
+(defun lagrange-determinant (lagrange-matrix vars degree row &optional prime)
   "Find the determinant of the matrix with the row replaced with the monomials"
   (let* ((n (car (array-dimensions lagrange-matrix)))
 		 (mat (make-array (list n n)))
@@ -46,14 +46,14 @@
 						 (aref mat
 							   (1+ r)
 							   (if (< c col) c (1+ c))))))
-			   (det m)))
+			   (det m prime)))
 	  (make-fpoly (reverse vars) degree
 				  (loop for col downfrom (1- n) to 0 collect
 					   (* (if (= row 0) 1 -1)
 						  (if (zerop (mod col 2)) 1 -1)
 						  (sub-det col)))))))
 
-(defun lagrange-interpolate (vars points vals degree)
+(defun lagrange-interpolate (vars points vals degree &optional prime)
   "Find the minimal polynomial with the degree that goes through the points with values"
   (cond
 	((zerop degree)
@@ -86,10 +86,12 @@
 					   :place "LAGRANGE-INTERPOLATE"
 					   :data (format nil "Zero determinant of lagrange matrix ~A" m)))
 			(let ((deltas (loop for row below (array-dimension m 0) collect
-							   (lagrange-determinant m vars degree row))))
+							   (lagrange-determinant m vars degree row prime))))
 			  (handler-case 
 				  (fpoly-sum (mapcar (lambda (val d)
-									   (fpoly-mul (/ val delta) d))
+									   (fpoly-mul (with-modular-arithmetic prime
+													(/ val delta))
+												  d))
 									 vals
 									 deltas))
 				(division-by-zero ()  (error 'fpoly-error
@@ -98,7 +100,7 @@
 
 						   
 
-(defun lagrange-interpolate-matrix (matrices bindings degree-matrix)
+(defun lagrange-interpolate-matrix (matrices bindings degree-matrix &optional prime)
   "Interpolate each entry in the list of matrices."
   (let ((n (mat-size (car matrices)))
 		(vars (mapcar #'car (car bindings)))
@@ -120,7 +122,8 @@
 										  (let ((d (aref degree-matrix i j)))
 											(if (zerop d)
 												(aref degree-matrix (1- n) (1- n))
-												d)))))
+												d))
+										  prime)))
 	  mat)))
 
 

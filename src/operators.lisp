@@ -229,6 +229,10 @@ Always choose the (absolute value) which is smaller of the two options"
 (defun mod-div (x y prime)
   (mod-mul x (egcd y prime) prime))
 
+(defun mod-trunc (x y prime)
+  (values (mod-div x y prime)
+		  0))
+
 (defun replace-car (list replace-alist prime)
   (cond
 	((null list) nil)
@@ -258,7 +262,7 @@ Always choose the (absolute value) which is smaller of the two options"
 										(- . mod-sub)
 										(* . mod-mul)
 										(/ . mod-div)
-										(truncate . mod-div))
+										(truncate . mod-trunc))
 									  gprime))
 					   body))
 		   (progn ,@body)))))
@@ -304,6 +308,28 @@ The values may be other polynomials or numbers."
 		(vals (mapcar #'cdr bindings)))
 	(docoeffs (poly coeff powers)
 	  (fpoly-incf sum (fpoly-eval-monomial vals powers coeff)))
+	sum))
+
+
+(defun fpoly-eval-monomial-mod (var-vals powers prime &optional (coeff 1))
+  "Evaluate a term coeff*X^n*Y^m... for various variables X,Y... and powers doing
+all internal operations modulo prime"
+  (mod-mul coeff
+		   (reduce (lambda (x y)
+					 (mod-mul x y prime))
+				   (mapcar (lambda (val power)
+							 (fpoly-mod (expt val power) prime))
+						   var-vals
+						   powers))
+		   prime))
+
+(defun fpoly-eval-mod (poly bindings prime)
+  "Evaluate a polynomial with bindings an assoc list of (var . value) pairs.
+The values may be other polynomials or numbers, all modulo prime"
+  (let ((sum 0)
+		(vals (mapcar #'cdr bindings)))
+	(docoeffs (poly coeff powers)
+	  (incf sum (fpoly-eval-monomial-mod vals powers prime coeff)))
 	sum))
 
 ;; ------------- copying ------------------------
