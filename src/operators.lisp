@@ -326,11 +326,13 @@ all internal operations modulo prime"
 (defun fpoly-eval-mod (poly bindings prime)
   "Evaluate a polynomial with bindings an assoc list of (var . value) pairs.
 The values may be other polynomials or numbers, all modulo prime"
-  (let ((sum 0)
-		(vals (mapcar #'cdr bindings)))
-	(docoeffs (poly coeff powers)
-	  (incf sum (fpoly-eval-monomial-mod vals powers prime coeff)))
-	sum))
+  (if (fpoly? poly)
+	  (let ((sum 0)
+			(vals (mapcar #'cdr bindings)))
+		(docoeffs (poly coeff powers)
+		  (incf sum (fpoly-eval-monomial-mod vals powers prime coeff)))
+		sum)
+	  (fpoly-mod poly prime)))
 
 ;; ------------- copying ------------------------
 

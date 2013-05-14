@@ -44,10 +44,9 @@
 (defun eval-matrix (mat bindings &key prime)
   "Evaluate all the polys in the matrix using the bindings"
   (mapmatrix (lambda (p)
-			   (let ((val (fpoly-eval p bindings)))
-				 (if prime
-					 (fpoly-mod val prime)
-					 val)))
+			   (if prime
+				   (fpoly-eval-mod p bindings prime)
+				   (fpoly-eval p bindings)))			 
 	         mat))
 
 (defun eval-vector (vec bindings &key prime)
