@@ -472,7 +472,6 @@ using the fraction free Gaussian Eliminaton algorithm."
 		 (oldpivot 1)
 		 (nswaps 0))
 	(dotimes (k (1- n))
-	  (format t "k: ~A u: ~A~%" k u)
 	  (if (zerop (aref u k k))
 		  (let ((kpivot (1+ k))
 				(notfound t))
