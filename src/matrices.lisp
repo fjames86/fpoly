@@ -113,7 +113,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 	(if (= counter max-attempts)
 		(error 'fpoly-error
 			   :place "CHOOSE-BINDINGS"
-			   :data "Exceeded max attempts at finding some bindings"))))
+			   :data "Exceeded max attempts at finding some bindings. Suggest increasing minimum prime."))))
 	
 
 (defun choose-bindings (mat &key (degree 1) (prime 5))
@@ -475,7 +475,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 			(if (= kpivot n)
 				(error 'fpoly-error
 					   :place "LU-DECOMPOSE"
-					   :data (format nil "Unable to pivot matrix ~A" matrix))
+					   :data (format nil "Unable to pivot matrix ~A in column ~A" matrix k))
 				(loop for col from k to (1- n) do
 					 (progn
 					   (rotatef (aref u k col) (aref u kpivot col))
