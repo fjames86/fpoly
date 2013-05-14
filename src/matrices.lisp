@@ -93,7 +93,15 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 						   (= val (cdr (assoc var fbinding)))))
 					   bindings)))
 		 forbidden-bindings))
-  		   
+
+(defun num-possible-bindings (nvars prime)
+  (let ((n (1+ (* 2 (1- prime)))))
+	(expt n nvars)))
+
+(defun binding-density (nvars degree prime)
+  (/ (base-offset nvars degree)
+	 (num-possible-bindings nvars prime)))
+
 (defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
 		(mapcar (lambda (var)
@@ -464,6 +472,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 		 (oldpivot 1)
 		 (nswaps 0))
 	(dotimes (k (1- n))
+	  (format t "k: ~A u: ~A~%" k u)
 	  (if (zerop (aref u k k))
 		  (let ((kpivot (1+ k))
 				(notfound t))
@@ -474,7 +483,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 			(if (= kpivot n)
 				(error 'fpoly-error
 					   :place "LU-DECOMPOSE"
-					   :data (format nil "Unable to pivot matrix ~A in column ~A" matrix k))
+					   :data (format nil "Unable to pivot column ~A. matrix:~% ~A~%" k matrix))
 				(loop for col from k to (1- n) do
 					 (progn
 					   (rotatef (aref u k col) (aref u kpivot col))

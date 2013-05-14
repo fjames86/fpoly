@@ -12,19 +12,21 @@
 
 ;;; mutlivariable lagrange intepolation
 
-(defun coeff-array (point degree)
+(defun coeff-array (point degree &optional prime)
   "Generate the coefficient array for a poly of degree at a point"
   (let ((num-vars (length point)))
 	(mapcar (lambda (powers)
-			  (fpoly-eval-monomial point powers))
+			  (if prime
+				  (fpoly-eval-monomial-mod point powers prime)
+				  (fpoly-eval-monomial point powers)))
 			(gen-all-powers num-vars degree))))
 
-(defun form-lagrange-matrix (points degree)
+(defun form-lagrange-matrix (points degree &optional prime)
   "Create the lagrange matrix from the variable points"
   (let ((n (base-offset (length (car points)) degree)))
 	(make-array (list n n)
 				:initial-contents (loop for point in points collect
-									   (reverse (coeff-array (reverse point) degree))))))
+									   (reverse (coeff-array (reverse point) degree prime))))))
 
 (defun lagrange-determinant (lagrange-matrix vars degree row &optional prime)
   "Find the determinant of the matrix with the row replaced with the monomials"
@@ -49,9 +51,14 @@
 			   (det m prime)))
 	  (make-fpoly (reverse vars) degree
 				  (loop for col downfrom (1- n) to 0 collect
-					   (* (if (= row 0) 1 -1)
-						  (if (zerop (mod col 2)) 1 -1)
-						  (sub-det col)))))))
+					   (if prime
+						   (fpoly-mod (* (if (= row 0) 1 -1)
+										 (if (zerop (mod col 2)) 1 -1)
+										 (sub-det col))
+									  prime)
+						   (* (if (= row 0) 1 -1)
+							  (if (zerop (mod col 2)) 1 -1)
+							  (sub-det col))))))))
 
 (defun lagrange-interpolate (vars points vals degree &optional prime)
   "Find the minimal polynomial with the degree that goes through the points with values"
@@ -79,7 +86,7 @@
 				 :data "Number of data points does not match polynomial degree"))
 		(let ((points (first-n points need-n))
 			  (vals (first-n vals need-n)))
-		  (let* ((m (form-lagrange-matrix points degree))
+		  (let* ((m (form-lagrange-matrix points degree prime))
 				 (delta (det m)))
 			(if (zerop delta)
 				(error 'fpoly-error
@@ -98,8 +105,6 @@
 											 :place "LAGRANGE-INTERPOLATE"
 											 :data "Divison by zero detetected"))))))))))
 
-						   
-
 (defun lagrange-interpolate-matrix (matrices bindings degree-matrix &optional prime)
   "Interpolate each entry in the list of matrices."
   (let ((n (mat-size (car matrices)))
@@ -110,7 +115,7 @@
 	(let ((mat (make-matrix n)))
 	  (doentries (mat entry i j)
 		(if (> j i)
-			(format t "interpolating with points ~A~%"
+			(format t "Interpolating with points ~A~%"
 					(mapcar (lambda (matrix)
 							  (aref matrix i j))
 							matrices)))
@@ -119,10 +124,11 @@
 										  (mapcar (lambda (matrix)
 													(aref matrix i j))
 												  matrices)
-										  (let ((d (aref degree-matrix i j)))
-											(if (zerop d)
-												(aref degree-matrix (1- n) (1- n))
-												d))
+										  (aref degree-matrix i j)
+;										  (let ((d (aref degree-matrix i j)))
+;											(if (zerop d)
+;												(aref degree-matrix (1- n) (1- n))
+;												d))
 										  prime)))
 	  mat)))
 
@@ -135,8 +141,8 @@
   (let ((m (make-matrix (mat-size (car mats)))))
 	(doentries (m entry i j)
 	  (setf entry (fpoly-chinese-remainder (mapcar (lambda (mat)
-								   (aref mat i j))
-								 mats)
-						 primes)))	
+													 (aref mat i j))
+												   mats)
+										   primes)))	
 	m))
 
