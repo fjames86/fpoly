@@ -166,6 +166,21 @@ Returns zero if this is outside the array"
 				:data "Offset lies outside of coeff array")))
     p))
 
+(defun print-coeff (c stream)
+  (cond
+	((complexp c)
+	 (format stream "(~A " (realpart c))
+	 (if (< (imagpart c) 0)
+		 (princ " - " stream)
+		 (princ " + " stream))
+	 (format stream "~A*i)" (abs (imagpart c))))
+	((numberp c) (princ c stream))
+	((fpoly? c)
+	 (princ "(" stream)
+	 (print-fpoly c stream)
+	 (princ ")"))
+	(t (princ c stream))))
+
 (defun print-fpoly (p &optional (stream *standard-output*))
   "Standard polynomial printing, i.e. 1 + X^2 + ..."
   (let ((vars (fpoly-vars p))
@@ -174,7 +189,7 @@ Returns zero if this is outside the array"
 	  (cond
 		((zerop coeff) nil)
 		(t
-		 (let ((sign (if (< coeff 0) -1 1)))
+		 (let ((sign (if (and (realp coeff) (< coeff 0)) -1 1)))
 		   ;; print the +/- sign but only if adding a new term 
 		   (if printed
 			   (if (= sign -1)
@@ -183,13 +198,17 @@ Returns zero if this is outside the array"
 		   ;; print the coefficient number unless it's either the first term or 1
 		   (cond
 			 ((= index 0)
-			  (format stream "~A" coeff))
+			  (print-coeff coeff stream))
 			 ((= coeff -1)
 			  (unless printed
 				(format stream "-")))
 			 ((= coeff 1)
 			  nil)
-			 (t (format stream "~A*" (* sign coeff))))
+			 (t (print-coeff (if (numberp coeff)
+								 (* sign coeff)
+								 coeff)
+							 stream)
+				(princ "*" stream)))
 		   ;; print the variables
 		   (mapc (lambda (x n)
 				   (cond
