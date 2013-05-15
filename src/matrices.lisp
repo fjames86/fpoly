@@ -164,7 +164,7 @@ into a solution matrix."
 	(let ((binding-list (choose-bindings mat
 										 :degree max-degree
 										 :prime prime)))
-	  (fpoly-debug "Chose bindings ~A~%" binding-list)
+	  (fpoly-debug "Prime: ~A Chose bindings ~A~%" prime binding-list)
 	  (let ((evaled-mats (mapcar (lambda (bindings)
 								   (eval-matrix mat
 												bindings
@@ -193,7 +193,23 @@ into a solution matrix."
   (labels ((try-solve ()
 			 (let ((primes (choose-primes mat :lowest-prime lowest-prime)))
 			   (combine-matrices (mapcar (lambda (prime)
-										   (solve-matrix (matrix-modulo mat prime) prime))
+										   (let ((i 0)
+												 (notdone t)
+												 (m nil))
+											 (loop while (and notdone (< i try-count)) do
+												  (handler-case 
+													  (setf m (solve-matrix (matrix-modulo mat prime) prime)
+															notdone nil
+															i (1+ i))
+													(fpoly-error (err)
+													  (fpoly-debug "Error ~A at ~A~%"
+																   (fpoly-error-data err)
+																   (fpoly-error-place err)))))
+											 (if m
+												 m
+												 (error 'fpoly-error
+														:place "SOLVE-SYSTEM:TRY-SOLVE"
+														:data "Try count exceeded"))))
 										 primes)
 								 primes))))
 	(fpoly-debug "Attempting to solve with ~A attempts remaining...~%" try-count)
