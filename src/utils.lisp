@@ -231,6 +231,7 @@ arguments."
 							(+ acc (* ai qi np))))))))
 	  (fpoly-mod (rec alist nlist 0) n))))
 
+
 ;;; ------- various utilities for manipulating powers and vars -----------
 
 (defun test-list (test source-list result-list)

@@ -221,7 +221,7 @@ Always choose the (absolute value) which is smaller of the two options"
   (fpoly-mod (+ (fpoly-mod x prime) (fpoly-mod y prime)) prime))
 
 (defun mod-sub (x y prime)
-  (fpoly-mod (- (fpoly-sub x prime) (fpoly-mod y prime)) prime))
+  (fpoly-mod (- (fpoly-mod x prime) (fpoly-mod y prime)) prime))
 
 (defun mod-mul (x y prime)
   (fpoly-mod (* (fpoly-mod x prime) (fpoly-mod y prime)) prime))

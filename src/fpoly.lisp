@@ -108,6 +108,12 @@
 (defmethod fpoly-degree ((p number))
   0)
 
+(defmethod fpoly-vars ((p number))
+  nil)
+
+(defmethod fpoly-coeffs ((p number))
+  (make-array 1 :initial-contents (list p)))
+
 (defun make-fpoly (variables degree &optional coeffs)  
   "Make an fpoly object."
   (let* ((vars (cond

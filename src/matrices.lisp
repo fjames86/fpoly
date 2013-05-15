@@ -63,17 +63,7 @@
   (defun choose-primes (mat &key (lowest-prime 5))
 	"Choose the smallest n primes such that their product
 is >= 2*x where x is the largest coefficient in the matrix provided"
-	(let ((x (let (max-coeff)
-			   (doentries (mat entry)
-				 (let ((c (if (numberp entry)
-							  entry
-							  (apply #'max (coerce (fpoly-coeffs entry) 'list)))))
-				   (cond
-					 ((null max-coeff)
-					  (setf max-coeff c))
-					 ((> c max-coeff)
-					  (setf max-coeff c)))))
-			   max-coeff))
+	(let ((x (max-coeff-matrix mat))
 		  (primes (drop-until (lambda (n)
 								(>= n lowest-prime))
 							  prime-list)))
@@ -291,11 +281,12 @@ into a solution matrix."
 (defun echelon (a &optional prime)
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton algorithm."
-  (unless (echelon? a)
+  (if (echelon? a)
+	  (values a 0 1)
 	(let ((n (car (array-dimensions a)))
 		  (swaps 0)
 		  (muls 1))
-	  (dotimes (i (1- n))
+	  (dotimes (i (1- n))		
 		;; pivot if needed
 		(if (zerop (aref a i i))
 			(progn
@@ -366,6 +357,48 @@ using the fraction free Gaussian Eliminaton algorithm."
 			 (setf (aref a j i) 0)))
 	  a))
 
+(defun max-coeff (poly)
+  (if (fpoly? poly)
+	  (let ((coeffs (fpoly-coeffs poly))
+			(max nil))
+		(dotimes (i (fpoly-size poly))
+		  (cond
+			((null max) (setf max (svref coeffs i)))
+			((> (svref coeffs i) max) (setf max (svref coeffs i)))))
+		max)
+	  poly))
+
+(defun max-coeff-matrix (matrix)
+  "Find the maximum coefficient of resulting polynomials after ffge operation"
+	(let* ((n (array-dimension matrix 0))
+		   (a (make-matrix n)))		   
+	  ;; setup
+	  (dotimes (i n)
+		(dotimes (j (1+ n))
+		  (setf (aref a i j) (max-coeff (aref matrix i j)))))
+
+	  ;; assume already pivoted
+	  (dotimes (i (1- n))
+		
+		(loop for j from (1+ i) to (1- n) do
+			 (setf (aref a j n) (max (* (aref a i i) (aref a j n))
+									 (* (aref a j i) (aref a i n))))
+			 (if (> i 0) 
+				 (setf (aref a j n) (/ (aref a j n) (aref a (1- i) (1- i)))))
+			 (loop for k from (1+ i) to (1- n) do
+				  (setf (aref a j k) (max (* (aref a i i) (aref a j k))
+										  (* (aref a j i) (aref a i k))))
+				  (if (> i 0)
+					  (setf (aref a j k) (/ (aref a j k) (aref a (1- i) (1- i))))))
+			 (setf (aref a j i) 0)))
+
+	  ;; return result
+	  (let (max)
+		(doentries (a entry)
+		  (cond
+			((null max) (setf max entry))
+			((> entry max) (Setf max entry))))
+		max)))
 
 (defun make-pivot (matrix)
   (let ((n (car (array-dimensions matrix))))
