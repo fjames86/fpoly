@@ -318,6 +318,12 @@ using the fraction free Gaussian Eliminaton algorithm."
 		  (if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
 	  (values a swaps muls))))
 
+(defun echelo (matrix &optional prime)
+  "Consing version of echelon"
+  (let ((a (copy-array matrix)))
+	(echelon a prime)))
+
+
 ;; ----------
 
 (defun deg-add (a b)
