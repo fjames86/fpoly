@@ -203,8 +203,8 @@ into a solution matrix."
 												:prime prime))
 								 binding-list)))
 		(let ((ms (mapcar (lambda (evaled-mat)
-							(echelon evaled-mat prime))
-;							(matrix-modulo (echelon evaled-mat) prime))
+;							(echelon evaled-mat prime))
+							(matrix-modulo (echelon evaled-mat) prime))
 						  evaled-mats)))
 		  (lagrange-interpolate-matrix ms
 									   binding-list
