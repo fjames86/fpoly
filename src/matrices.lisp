@@ -129,7 +129,6 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 			   :place "CHOOSE-BINDING"
 			   :data "Exceeded max attempts at finding some bindings. Suggest increasing minimum prime."))))
 	
-
 (defun choose-bindings (mat &key (degree 1) (prime 5))
   "Given a matrix, compute a set of bindings for the symbols"
   (let (vars polys)
@@ -146,7 +145,6 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		   (bindings nil (cons (choose-binding vars polys prime bindings)
 							   bindings)))
 		  ((= i n) bindings)))))
-
 
 (defun find-max-degree (mat)
   "Sum the degree of the diagonal elements of the matrix."
