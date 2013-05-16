@@ -588,3 +588,39 @@ using the fraction free Gaussian Eliminaton algorithm."
 	  (t (lu-det matrix prime)))))
 
 
+;;;;
+
+
+(defun random-poly (vars max-degree max-coeff &key (coeff-density 1.0))
+  (let ((p (make-fpoly vars max-degree)))
+	(docoeffs (p coeff powers)
+	  (if (< (random 1.0) coeff-density)
+		  (setf coeff (fpoly-mod (random (* 2 max-coeff)) max-coeff))
+		  (setf coeff 0)))
+	p))
+
+(defun gen-test-system (vars max-degree max-coeff n &key
+						(entry-density 0.5) (coeff-density 0.3))
+  "Generate a random n x n system with polynomials in up to nvars
+of max degree with max coeffs."
+  (let ((m (make-matrix n))
+		(varvals (loop for i below n collect (random max-coeff))))
+	(dotimes (row n)
+	  (dotimes (col n)
+		(if (< (random 1.0) entry-density)
+			(setf (aref m row col) (random-poly vars max-degree max-coeff
+												:coeff-density coeff-density))
+			(setf (aref m row col) 0))))
+
+	;; now set the values on the n-th column
+	(dotimes (row n)
+	  (setf (aref m row n) (fpoly-sum (loop for i below n collect
+										   (fpoly-mul (nth i varvals) (aref m row i))))))
+
+	(values m varvals)))
+
+(defmacro def-test-system (name vals)
+  `(multiple-value-bind (name vals) (gen-test-system '(x y) 2 10 3)
+	 (defparameter ,name name)
+	 (defparameter ,vals vals)))
+
