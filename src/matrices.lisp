@@ -67,6 +67,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		  (primes (drop-until (lambda (n)
 								(>= n lowest-prime))
 							  prime-list)))
+	  (fpoly-debug "max coeff: ~A~%" x)
 	  (do ((prod 1)
 		   (pms nil))
 		  ((or (>= prod (* 2 x))
@@ -92,6 +93,23 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
   (/ (base-offset nvars degree)
 	 (num-possible-bindings nvars prime)))
 
+
+(defun next-binding (current-bindings prime)
+  (labels ((rec (bs acc)
+			 (if (null bs)
+				 (error 'fpoly-error
+						:place "NEXT-BINDING"
+						:data "Out of possible bindings. Try a larger prime!")
+				 (destructuring-bind (var . b) (car bs)
+				   (let ((b1 (1+ b)))
+					 (if (= b1 prime)
+						 (rec (cdr bs)
+							  (append acc
+									  (list (cons var (1+ (- prime))))))
+						 (cons (cons var b1)
+							   (cdr bs))))))))
+	(rec current-bindings nil)))
+
 (defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
 		(mapcar (lambda (var)
@@ -109,7 +127,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 	   bindings)
 	(if (= counter max-attempts)
 		(error 'fpoly-error
-			   :place "CHOOSE-BINDINGS"
+			   :place "CHOOSE-BINDING"
 			   :data "Exceeded max attempts at finding some bindings. Suggest increasing minimum prime."))))
 	
 
@@ -119,16 +137,16 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 	(doentries (mat entry)
 	  (if (fpoly? entry)
 		  (progn
-			(mapcar (lambda (var)
-					  (pushnew var vars))
-					(fpoly-vars entry))
+			(mapc (lambda (var)
+					(pushnew var vars))
+				  (fpoly-vars entry))
 			(push entry polys))))
 
 	(let ((n (base-offset (length vars) degree)))
-	(do ((i 0 (1+ i))
-		 (bindings nil (cons (choose-binding vars polys prime bindings)
-							 bindings)))
-		((= i n) bindings)))))
+	  (do ((i 0 (1+ i))
+		   (bindings nil (cons (choose-binding vars polys prime bindings)
+							   bindings)))
+		  ((= i n) bindings)))))
 
 
 (defun find-max-degree (mat)
@@ -162,6 +180,7 @@ into a solution matrix."
 								 binding-list)))
 		(let ((ms (mapcar (lambda (evaled-mat)
 							(echelon evaled-mat prime))
+;							(matrix-modulo (echelon evaled-mat) prime))
 						  evaled-mats)))
 		  (lagrange-interpolate-matrix ms
 									   binding-list
@@ -179,7 +198,7 @@ into a solution matrix."
 										   primes)))
 	m))
 
-(defun solve-system (mat &key (try-count 100) (lowest-prime 5))
+(defun solve-system (mat &key (try-count 10) (lowest-prime 5))
   (labels ((try-solve ()
 			 (let ((primes (choose-primes mat :lowest-prime lowest-prime)))
 			   (combine-matrices (mapcar (lambda (prime)
@@ -187,10 +206,11 @@ into a solution matrix."
 												 (notdone t)
 												 (m nil))
 											 (loop while (and notdone (< i try-count)) do
-												  (handler-case 
-													  (setf m (solve-matrix (matrix-modulo mat prime) prime)
-															notdone nil
-															i (1+ i))
+												  (handler-case
+													  (progn
+														(incf i)
+														(setf m (solve-matrix (matrix-modulo mat prime) prime))
+														(setf notdone nil))
 													(fpoly-error (err)
 													  (fpoly-debug "Error ~A at ~A~%"
 																   (fpoly-error-data err)
@@ -283,40 +303,40 @@ into a solution matrix."
 using the fraction free Gaussian Eliminaton algorithm."
   (if (echelon? a)
 	  (values a 0 1)
-	(let ((n (car (array-dimensions a)))
-		  (swaps 0)
-		  (muls 1))
-	  (dotimes (i (1- n))		
-		;; pivot if needed
-		(if (zerop (aref a i i))
-			(progn
-			  (pivot a i n)
-			  (incf swaps)))
-		
-		(loop for j from (1+ i) to (1- n) do
-			 (with-modular-arithmetic prime
-			   (setf (aref a j n) (- (* (aref a i i) (aref a j n))
-									 (* (aref a j i) (aref a i n)))))
-			 (if (> i 0) 
-				 (multiple-value-bind (q r) (with-modular-arithmetic prime
-											  (truncate (aref a j n) (aref a (1- i) (1- i))))
-				   (declare (ignore r)) ; should be zero
-				   (setf (aref a j n) q)))
-			 (loop for k from (1+ i) to (1- n) do
-				  (with-modular-arithmetic prime
-					(setf (aref a j k) (- (* (aref a i i) (aref a j k))
-										  (* (aref a j i) (aref a i k)))))
-				  (if (> i 0)
-					  (multiple-value-bind (q r) (with-modular-arithmetic prime
-												   (truncate (aref a j k)
-															 (aref a (1- i) (1- i))))
-						(declare (ignore r))
-						(setf (aref a j k) q))))
-			 (setf (aref a j i) 0))
-		(with-modular-arithmetic prime
-		  (setf muls (* muls (aref a i i)))
-		  (if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
-	  (values a swaps muls))))
+	  (let ((n (car (array-dimensions a)))
+			(swaps 0)
+			(muls 1))
+		(dotimes (i (1- n))		
+		  ;; pivot if needed
+		  (if (zerop (aref a i i))
+			  (progn
+				(pivot a i n)
+				(incf swaps)))
+		  
+		  (loop for j from (1+ i) to (1- n) do
+			   (with-modular-arithmetic prime
+				 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
+									   (* (aref a j i) (aref a i n)))))
+			   (if (> i 0) 
+				   (multiple-value-bind (q r) (with-modular-arithmetic prime
+												(truncate (aref a j n) (aref a (1- i) (1- i))))
+					 (declare (ignore r)) ; should be zero
+					 (setf (aref a j n) q)))
+			   (loop for k from (1+ i) to (1- n) do
+					(with-modular-arithmetic prime
+					  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
+											(* (aref a j i) (aref a i k)))))
+					(if (> i 0)
+						(multiple-value-bind (q r) (with-modular-arithmetic prime
+													 (truncate (aref a j k)
+															   (aref a (1- i) (1- i))))
+						  (declare (ignore r))
+						  (setf (aref a j k) q))))
+			   (setf (aref a j i) 0))
+		  (with-modular-arithmetic prime
+			(setf muls (* muls (aref a i i)))
+			(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
+		(values a swaps muls))))
 
 (defun echelo (matrix &optional prime)
   "Consing version of echelon"
@@ -370,14 +390,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 		(dotimes (i (fpoly-size poly))
 		  (cond
 			((null max) (setf max (svref coeffs i)))
-			((> (svref coeffs i) max) (setf max (svref coeffs i)))))
+			((> (abs (svref coeffs i)) max) (setf max (abs (svref coeffs i))))))
 		max)
 	  poly))
 
 (defun max-coeff-matrix (matrix)
   "Find the maximum coefficient of resulting polynomials after ffge operation"
 	(let* ((n (array-dimension matrix 0))
-		   (a (make-matrix n)))		   
+		   (a (make-matrix n)))
+	  
 	  ;; setup
 	  (dotimes (i n)
 		(dotimes (j (1+ n))
@@ -389,13 +410,13 @@ using the fraction free Gaussian Eliminaton algorithm."
 		(loop for j from (1+ i) to (1- n) do
 			 (setf (aref a j n) (max (* (aref a i i) (aref a j n))
 									 (* (aref a j i) (aref a i n))))
-			 (if (> i 0) 
-				 (setf (aref a j n) (/ (aref a j n) (aref a (1- i) (1- i)))))
+;			 (if (> i 0) 
+;				 (setf (aref a j n) (/ (aref a j n) (aref a (1- i) (1- i)))))
 			 (loop for k from (1+ i) to (1- n) do
 				  (setf (aref a j k) (max (* (aref a i i) (aref a j k))
-										  (* (aref a j i) (aref a i k))))
-				  (if (> i 0)
-					  (setf (aref a j k) (/ (aref a j k) (aref a (1- i) (1- i))))))
+										  (* (aref a j i) (aref a i k)))))
+;				  (if (> i 0)
+;					  (setf (aref a j k) (/ (aref a j k) (aref a (1- i) (1- i))))))
 			 (setf (aref a j i) 0)))
 
 	  ;; return result
@@ -403,7 +424,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 		(doentries (a entry)
 		  (cond
 			((null max) (setf max entry))
-			((> entry max) (Setf max entry))))
+			((> entry max) (setf max entry))))
 		max)))
 
 (defun make-pivot (matrix)

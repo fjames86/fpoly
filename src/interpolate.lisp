@@ -93,7 +93,8 @@
 					   :place "LAGRANGE-INTERPOLATE"
 					   :data (format nil "Zero determinant of lagrange matrix ~A" m)))
 			(let ((deltas (loop for row below (array-dimension m 0) collect
-							   (lagrange-determinant m vars degree row prime))))
+							   ;(lagrange-determinant m vars degree row prime))))
+							   (fpoly-mod (lagrange-determinant m vars degree row) prime))))
 			  (handler-case 
 				  (fpoly-sum (mapcar (lambda (val d)
 									   (fpoly-mul (with-modular-arithmetic prime
