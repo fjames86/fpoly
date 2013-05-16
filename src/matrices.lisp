@@ -110,6 +110,30 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 							   (cdr bs))))))))
 	(rec current-bindings nil)))
 
+(defun choose-bindings (mat &key (degree 1) (prime 5))
+  (let (vars polys)
+	(doentries (mat entry)
+	  (if (fpoly? entry)
+		  (progn
+			(mapc (lambda (var)
+					(pushnew var vars))
+				  (fpoly-vars entry))
+			(push entry polys))))
+
+	(let ((n (base-offset (length vars) degree)))
+	  (do ((i 0 (1+ i))
+		   (binding (loop for var in vars collect (cons var (1+ (- prime)))))
+		   (bindings nil))
+		  ((= i n) bindings)
+		(do ((b (next-binding binding prime)
+				(next-binding binding prime)))
+			((every (lambda (p)
+					  (not (zerop (fpoly-eval p b))))
+					polys)
+			 (push b bindings))
+		  (setf binding b))))))
+
+  
 (defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
 		(mapcar (lambda (var)
