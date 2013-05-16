@@ -95,7 +95,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 
 
 (defun next-binding (current-bindings prime)
-  (labels ((rec (bs acc)
+  (labels ((rec (bs)
 			 (if (null bs)
 				 (error 'fpoly-error
 						:place "NEXT-BINDING"
@@ -103,36 +103,11 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 				 (destructuring-bind (var . b) (car bs)
 				   (let ((b1 (1+ b)))
 					 (if (= b1 prime)
-						 (rec (cdr bs)
-							  (append acc
-									  (list (cons var (1+ (- prime))))))
+						 (cons (cons var (1+ (- prime)))
+							   (rec (cdr bs)))
 						 (cons (cons var b1)
 							   (cdr bs))))))))
-	(rec current-bindings nil)))
-
-(defun choose-bindings (mat &key (degree 1) (prime 5))
-  (let (vars polys)
-	(doentries (mat entry)
-	  (if (fpoly? entry)
-		  (progn
-			(mapc (lambda (var)
-					(pushnew var vars))
-				  (fpoly-vars entry))
-			(push entry polys))))
-
-	(let ((n (base-offset (length vars) degree)))
-	  (do ((i 0 (1+ i))
-		   (binding (loop for var in vars collect (cons var (1+ (- prime)))))
-		   (bindings nil))
-		  ((= i n) bindings)
-		(do ((b (next-binding binding prime)
-				(next-binding binding prime)))
-			((every (lambda (p)
-					  (not (zerop (fpoly-eval p b))))
-					polys)
-			 (push b bindings))
-		  (setf binding b))))))
-
+	(rec current-bindings)))
   
 (defun choose-binding (vars polys prime forbidden-bindings &key (max-attempts 100))
   (do ((bindings 
