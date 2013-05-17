@@ -94,7 +94,9 @@
 					   :data (format nil "Zero determinant of lagrange matrix ~A" m)))
 			(let ((deltas (loop for row below (array-dimension m 0) collect
 							   ;(lagrange-determinant m vars degree row prime))))
-							   (fpoly-mod (lagrange-determinant m vars degree row) prime))))
+							   (if prime
+								   (fpoly-mod (lagrange-determinant m vars degree row) prime)
+								   (lagrange-determinant m vars degree row)))))
 			  (handler-case 
 				  (fpoly-sum (mapcar (lambda (val d)
 									   (fpoly-mul (with-modular-arithmetic prime
@@ -126,10 +128,6 @@
 													(aref matrix i j))
 												  matrices)
 										  (aref degree-matrix i j)
-;										  (let ((d (aref degree-matrix i j)))
-;											(if (zerop d)
-;												(aref degree-matrix (1- n) (1- n))
-;												d))
 										  prime)))
 	  mat)))
 

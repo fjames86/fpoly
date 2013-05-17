@@ -146,6 +146,49 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 							   bindings)))
 		  ((= i n) bindings)))))
 
+
+(defun choose-bindings (mat degree &key (prime 11) (max-try-count 100))
+  (let (vars polys)
+	(doentries (mat entry)
+	  (if (fpoly? entry)
+		  (progn
+			(mapc (lambda (var)
+					(pushnew var vars))
+				  (fpoly-vars entry))
+			(push entry polys))))
+	
+	(let ((n (base-offset (length vars) degree)))
+	  (do ((i 0)
+		   (try-count 0)
+		   (bindings nil))
+		  ((= i n) bindings)
+		(let ((b (mapcar (lambda (var)
+						   (cons var (- (random (* 2 prime)) prime)))
+						 vars)))
+		  (if (and (every (lambda (poly)
+							(not (zerop (fpoly-eval poly b))))
+						  polys)
+				   (every (lambda (binding)
+							(some (lambda (x y)
+									(not (= x y)))
+								  (mapcar #'cdr b)
+								  (mapcar #'cdr binding)))
+						  bindings))
+			  (progn
+				(fpoly-debug "(~A) found binding: ~A~%" i b)
+				(incf i)
+				(setf try-count 0)
+				(push b bindings))
+			  (progn
+				(fpoly-debug "Binding ~A rejected.~%" b)
+				(incf try-count)
+				(if (> try-count max-try-count)
+					(error "Max try count ~A exceeded. Out of luck!" try-count)))))))))
+
+
+
+
+
 (defun find-max-degree (mat)
   "Sum the degree of the diagonal elements of the matrix."
   (let ((max-degree 0))
@@ -167,7 +210,7 @@ into a solution matrix."
 		  (setf max-degree entry)))
 
 	(let ((binding-list (choose-bindings mat
-										 :degree max-degree
+										 max-degree
 										 :prime prime)))
 	  (fpoly-debug "Prime: ~A Chose bindings ~A~%" prime binding-list)
 	  (let ((evaled-mats (mapcar (lambda (bindings)
@@ -231,6 +274,25 @@ into a solution matrix."
 						  :try-count (1- try-count)
 						  :lowest-prime lowest-prime))))))
 						  
+
+(defun simple-solve (mat &key (width 100) (try-count 100))
+  "Solve without moduloing primes"
+  (let ((degree-matrix (degree-matrix mat))
+		(max-degree))
+	(doentries (degree-matrix entry)
+	  (cond
+		((null max-degree) (setf max-degree entry))
+		((> entry max-degree) (setf max-degree entry))))
+	
+	(let ((bindings (choose-bindings mat max-degree :prime width :max-try-count try-count)))
+	  (let ((emats (mapcar (lambda (binding)
+							 (eval-matrix mat binding))
+						   bindings)))
+		(lagrange-interpolate-matrix (mapcar (lambda (emat)
+											   (echelon emat))
+											 emats)
+									 bindings
+									 degree-matrix)))))
 
 
 ;; --------------------- printers ---------------------
@@ -618,11 +680,11 @@ using the fraction free Gaussian Eliminaton algorithm."
 	p))
 
 (defun gen-test-system (vars max-degree max-coeff n &key
-						(entry-density 0.5) (coeff-density 0.3))
+						(entry-density 0.5) (coeff-density 0.3) vals)
   "Generate a random n x n system with polynomials in up to nvars
 of max degree with max coeffs."
   (let ((m (make-matrix n))
-		(varvals (loop for i below n collect (random max-coeff))))
+		(varvals (if vals vals (loop for i below n collect (random max-coeff)))))
 	(dotimes (row n)
 	  (dotimes (col n)
 		(if (< (random 1.0) entry-density)
@@ -637,8 +699,8 @@ of max degree with max coeffs."
 
 	(values m varvals)))
 
-(defmacro def-test-system (name vals)
-  `(multiple-value-bind (name vals) (gen-test-system '(x y) 2 10 3)
+(defmacro def-test-system ((name vals) vars max-degree max-coeff n &rest args)
+  `(multiple-value-bind (name vals) (gen-test-system ,vars ,max-degree ,max-coeff ,n ,@args)
 	 (defparameter ,name name)
 	 (defparameter ,vals vals)))
 
