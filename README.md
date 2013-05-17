@@ -60,12 +60,14 @@ Load a matrix using (load-matrix "filename") and try to solve it using either:
 
 ; solve the input problem by choosing some evaluation points, solving each of the
 ; resulting matrices and combining back into a solution using lagrange interpolation
+<br>
 (simple-solve mymat)
 
 
 ; first takes the input system modulo a set of primes and solves each of these using
 ; a procedure similar to simple-solve and finally compute the solution by combining the
 ; sub solutions using chinese remaindering
+<br>
 (solve-system mymat)
 
 
