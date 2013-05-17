@@ -128,9 +128,10 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 		(error 'fpoly-error
 			   :place "CHOOSE-BINDING"
 			   :data "Exceeded max attempts at finding some bindings. Suggest increasing minimum prime."))))
-	
-(defun choose-bindings (mat &key (degree 1) (prime 5))
-  "Given a matrix, compute a set of bindings for the symbols"
+
+;; old version, don't use!
+(defun choose-bindings% (mat &key (degree 1) (prime 5))
+  "Given a matrix, compute a set of bindings for the symbols."
   (let (vars polys)
 	(doentries (mat entry)
 	  (if (fpoly? entry)
@@ -148,6 +149,7 @@ is >= 2*x where x is the largest coefficient in the matrix provided"
 
 
 (defun choose-bindings (mat degree &key (prime 11) (max-try-count 100))
+  "Find a suitable set of bindings for the input system matrix."
   (let (vars polys)
 	(doentries (mat entry)
 	  (if (fpoly? entry)
