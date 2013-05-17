@@ -1,4 +1,4 @@
-o
+
 ;;;;
 ;;;; Defines all operations that are performed on polynomials (and numbers)
 ;;;; as generic functions. Essentially promotes polynomials as a superclass of numbers

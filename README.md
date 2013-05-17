@@ -54,11 +54,26 @@ There are also other functions for evaluation, substitution and simplification o
 
 * Matrices
 
-There are a set of functions for manipulating matrices of polynomials.
+There are a set of functions for manipulating matrices of polynomials, mainly aimed at solving systems of linear equations. This is still a work in progress so expect bugs!
+
+Load a matrix using (load-matrix "filename") and try to solve it using either:
+
+; solve the input problem by choosing some evaluation points, solving each of the
+; resulting matrices and combining back into a solution using lagrange interpolation
+(simple-solve mymat)
+
+
+; first takes the input system modulo a set of primes and solves each of these using
+; a procedure similar to simple-solve and finally compute the solution by combining the
+; sub solutions using chinese remaindering
+(solve-system mymat)
+
 
 * Interpolation
 
 The function lagrange-interpolate computes a polynomial which goes through a set of points.
+
+This requires finding the determinant of a set of n x n matrices which can grow very large for even moderately sized input problems. Here, n = (base-offset nvars degree). Be warned, will become very slow very quickly!
 
 * libfpoly interface
 

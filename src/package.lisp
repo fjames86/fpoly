@@ -11,6 +11,7 @@
 		   #:fpoly-degree
 		   #:fpoly-coeffs
 		   #:fpoly-coeff
+		   #:fpoly-size
 		   
 		   ;; operators
 		   #:fpoly-add
