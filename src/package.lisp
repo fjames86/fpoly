@@ -49,13 +49,11 @@
 		   ;; interpolate
 		   #:lagrange-interpolate
 		   #:lagrange-interpolate-matrix
-		   #:fpoly-chinese-remainder
-		   #:chinese-remainder-matrices
+
 		   
 		   ;; parsing
 		   #:parse-fpoly
 		   #:parse-fpoly-string
-		   #:read-vector
 		   #:read-matrix
 		   #:load-matrix 
 		   ))
