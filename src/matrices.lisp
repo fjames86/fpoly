@@ -679,7 +679,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 	  (if (< (random 1.0) coeff-density)
 		  (setf coeff (fpoly-mod (random (* 2 max-coeff)) max-coeff))
 		  (setf coeff 0)))
-	p))
+	(fpoly-simplify p)))
 
 (defun gen-test-system (vars max-degree max-coeff n &key
 						(entry-density 0.5) (coeff-density 0.3) vals)

@@ -55,7 +55,10 @@
 		   #:parse-fpoly
 		   #:parse-fpoly-string
 		   #:read-matrix
-		   #:load-matrix 
+		   #:load-matrix
+
+		   ;; compiler
+		   #:defpoly
 		   ))
 
 

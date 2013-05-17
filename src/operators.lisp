@@ -1,4 +1,4 @@
-
+o
 ;;;;
 ;;;; Defines all operations that are performed on polynomials (and numbers)
 ;;;; as generic functions. Essentially promotes polynomials as a superclass of numbers
@@ -411,7 +411,10 @@ The values may be other polynomials or numbers, all modulo prime"
 	  (docoeffs (p coeff powers)
 		(let ((pws (project-powers vars powers (fpoly-vars poly))))
 		  (setf coeff (if pws (apply #'fpoly-coeff poly pws) 0))))
-	  p)))
+
+	  (if (= (fpoly-size p) 1)
+		  (fpoly-coeff p 0)
+		  p))))
 
 	  
 ;;; ------------ reducers -------------------------
