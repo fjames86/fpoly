@@ -23,7 +23,10 @@
 												"fpoly" "operators" "conditions"))
 				 (:file "interpolate" :depends-on ("package" "utils" "fpoly"
 												   "operators" "matrices" "conditions"))
-				 (:file "interface" :depends-on ("package")))))
+				 (:file "interface" :depends-on ("package"))
+				 (:file "compiler" :depends-on ("package" "utils" "fpoly" "parser"
+												"operators")))))
+
   :depends-on (:cffi))
 
 

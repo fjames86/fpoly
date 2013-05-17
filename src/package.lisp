@@ -32,7 +32,12 @@
 		   #:mat-size
 		   #:doentries
 		   #:mapmatrix		   
-		   #:solve-system		  
+		   #:solve-system
+		   #:simple-solve
+		   
+		   #:gen-test-system
+		   #:def-test-system
+
 		   #:print-matrices
 		   #:print-matrix-mma
 		   
