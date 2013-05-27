@@ -213,13 +213,6 @@
 (defmethod fpoly-div ((p1 fpoly) (p2 number))
   (fpoly-div p1 (make-fpoly nil 0 (list p2))))
 
-	  
-		
-	 
-
-  
-  (error "*** fpoly-div: poly division not yet implemented"))
-
 
 ;;; --------------- equality testing -------------
 
@@ -457,13 +450,7 @@ The values may be other polynomials or numbers, all modulo prime"
   (let ((vars (involved-vars poly))
 		(degree (highest-degree poly)))
 	(let ((p (make-fpoly vars degree)))
-	  (docoeffs (p coeff powers)
-		(let ((pws (project-powers vars powers (fpoly-vars poly))))
-		  (setf coeff (if pws (apply #'fpoly-coeff poly pws) 0))))
-
-	  (if (= (fpoly-size p) 1)
-		  (fpoly-coeff p 0)
-		  p))))
+	  p)))
 
 	  
 ;;; ------------ reducers -------------------------

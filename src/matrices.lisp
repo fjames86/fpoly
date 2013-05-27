@@ -331,7 +331,8 @@ into a solution matrix."
   (let ((row (1+ i))
 		(canpivot t))
 	(loop while (and (< row n) canpivot) do
-		 (if (zerop (aref mat row i))
+		 (if (and (numberp (aref mat row i))
+				  (zerop (aref mat row i)))
 			 (incf row)
 			 (setf canpivot nil)))
 	(if (= row n)
@@ -354,7 +355,8 @@ into a solution matrix."
 	  (dotimes (col n)
 		(let ((row (1+ col)))
 		  (loop while (and (< row n) solved) do
-			   (if (not (zerop (aref matrix row col)))
+			   (if (not (and (numberp (aref matrix row col))
+							 (zerop (aref matrix row col))))
 				   (setf solved nil)
 				   (incf row)))))
 	  solved)))
@@ -403,6 +405,60 @@ using the fraction free Gaussian Eliminaton algorithm."
   "Consing version of echelon"
   (let ((a (copy-array matrix)))
 	(echelon a prime)))
+
+(defun fpoly-echelon (a)
+  "Reduce a matrix of polys to row-echelon form,
+using the fraction free Gaussian Eliminaton algorithm."
+  (if (echelon? a)
+	  (values a 0 1)
+	  (let ((n (array-dimension a 0))
+			(swaps 0)
+			(muls 1))
+		(dotimes (i (1- n))		
+		  ;; pivot if needed
+		  (if (and (numberp (aref a i i))
+				   (zerop (aref a i i)))
+			  (progn
+				(pivot a i n)
+				(incf swaps)))
+		  
+		  (loop for j from (1+ i) to (1- n) do
+			   (setf (aref a j n) (fpoly-sub (fpoly-mul (aref a i i) (aref a j n))
+											 (fpoly-mul (aref a j i) (aref a i n))))
+			   (if (> i 0) 
+				   (multiple-value-bind (q r) (fpoly-div (aref a j n)
+														 (aref a (1- i) (1- i)))
+					 (declare (ignore r)) ; should be zero
+					 (setf (aref a j n) q)))
+			   (loop for k from (1+ i) to (1- n) do
+					(setf (aref a j k) (fpoly-sub (fpoly-mul (aref a i i) (aref a j k))
+												  (fpoly-mul (aref a j i) (aref a i k))))
+					(if (> i 0)
+						(multiple-value-bind (q r) (fpoly-div (aref a j k)
+															  (aref a (1- i) (1- i)))
+						  (declare (ignore r))
+						  (setf (aref a j k) q))))
+			   (setf (aref a j i) 0))
+		  (setf muls (fpoly-mul muls (aref a i i)))
+		  (if (> i 0) (setf muls (fpoly-div muls (aref a (1- i) (1- i))))))
+		(values a swaps muls))))
+
+(defun direct-solve (system)
+  (let* ((a (fpoly-echelon system))
+		 (n (array-dimension system 0))
+		 (b (make-array n)))
+	(loop for i from (1- n) downto 0 do
+		 (do ((j (1- n) (1- j))
+			  (sum 0 (fpoly-add sum
+								(fpoly-mul (svref b j) (aref a i j)))))
+			 ((= j i)			  
+			  (setf (svref b i) (fpoly-div (fpoly-sub (aref a i n) sum)
+										   (aref a i i))))))
+	b))
+
+		   
+			  
+	
 
 
 ;; ----------
@@ -674,12 +730,18 @@ using the fraction free Gaussian Eliminaton algorithm."
 
 
 (defun random-poly (vars max-degree max-coeff &key (coeff-density 1.0))
-  (let ((p (make-fpoly vars max-degree)))
+  (let ((p (make-fpoly vars max-degree))
+		(setone nil))
 	(docoeffs (p coeff powers)
 	  (if (< (random 1.0) coeff-density)
-		  (setf coeff (fpoly-mod (random (* 2 max-coeff)) max-coeff))
-		  (setf coeff 0)))
-	(fpoly-simplify p)))
+		  (let ((c (fpoly-mod (random (* 2 max-coeff)) max-coeff)))
+			(setf coeff c)
+			(unless (zerop c)
+			  (setf setone t)))))
+	(if setone
+		p
+		(fpoly-mod (random (* 2 max-coeff)) max-coeff))))
+
 
 (defun gen-test-system (vars max-degree max-coeff n &key
 						(entry-density 0.5) (coeff-density 0.3) vals)
