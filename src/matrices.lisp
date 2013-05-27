@@ -453,13 +453,9 @@ using the fraction free Gaussian Eliminaton algorithm."
 								(fpoly-mul (svref b j) (aref a i j)))))
 			 ((= j i)			  
 			  (setf (svref b i) (fpoly-div (fpoly-sub (aref a i n) sum)
-										   (aref a i i))))))
+										   (aref a i i))))
+		   (format t "i: ~A j: ~A sum: ~S~%" i j sum)))
 	b))
-
-		   
-			  
-	
-
 
 ;; ----------
 
@@ -760,11 +756,15 @@ of max degree with max coeffs."
 	(dotimes (row n)
 	  (setf (aref m row n) (fpoly-sum (loop for i below n collect
 										   (fpoly-mul (nth i varvals) (aref m row i))))))
-
+	
 	(values m varvals)))
 
 (defmacro def-test-system ((name vals) vars max-degree max-coeff n &rest args)
-  `(multiple-value-bind (name vals) (gen-test-system ,vars ,max-degree ,max-coeff ,n ,@args)
-	 (defparameter ,name name)
-	 (defparameter ,vals vals)))
+  (let ((gname (gensym "NAME"))
+		(gvals (gensym "VALS")))
+  `(multiple-value-bind (,gname ,gvals) (gen-test-system ,vars ,max-degree
+														 ,max-coeff ,n ,@args)
+	 (defparameter ,name ,gname)
+	 (defparameter ,vals ,gvals)
+	 ,gname)))
 
