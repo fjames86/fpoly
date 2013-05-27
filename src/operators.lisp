@@ -168,24 +168,47 @@
 (defun leading-term (poly ordering)
   (let* ((vars (fpoly-vars poly))
 		 (ovars (demerge-vars vars ordering)))
-	
-	(labels ((rec (powers)
-			   (let ((coeff (apply #'fpoly-coeff poly
-								   (shuffle-power-order vars powers ovars))))
-				 (if (zerop coeff)
-					 (rec (cdr powers))
-					 (values coeff powers)))))
-		
-  )
+	(block lterm
+	  (docoeffs* (poly coeff powers)
+		(let* ((spowers (shuffle-power-order vars powers ovars))
+			   (c (apply #'fpoly-coeff poly spowers)))
+		  (unless (zerop c)
+			(return-from lterm (values c spowers)))))
+	  (values 0 nil))))
 
+(defun div-monomials (c1 vars1 powers1 c2 vars2 powers2)
+  (let* ((vars (merge-vars vars1 vars2))
+		 (powers (sub-powers-onto vars
+								  vars1 powers1
+								  vars2 powers2)))
+	(if (some (lambda (p)
+				(< p 0))
+			  powers)
+		(values 0 (make-monomial vars1 powers1 c1))
+		(multiple-value-bind (q r) (truncate c1 c2)
+		  (values (make-monomial vars powers q)
+				  (make-monomial vars1 powers1 r))))))
+  
 (defmethod fpoly-div ((p1 fpoly) (p2 fpoly))
-  (let ((lt (leading-term p2))
-		(rst (fpoly-sub p2 lt)))
-	(do ((q 0)
-		 (r 0))
-		((< (degree (leading-term p1)) (degree lt))
-		 (values q (fpoly-add r p2)))
-	  (multiple-value-bind (q1 r1) (div-monomial (leading-term p1) lt)
+  (let ((ordering (merge-vars (fpoly-vars p1) (fpoly-vars p2))))
+	(multiple-value-bind (lt-coeff lt-powers) (leading-term p2 ordering)
+	  (let* ((lt (make-monomial (fpoly-vars p2) lt-powers lt-coeff))
+			 (lt-deg (fpoly-degree lt))
+			 (rst (fpoly-sub p2 lt))
+			 (q 0)
+			 (r 0))
+		(loop for d = (multiple-value-bind (c pws) (leading-term p1 ordering)
+						(cons c pws))
+			 while (>= (reduce #'+ (cdr d)) lt-deg) 
+			 do (let ((dd (make-monomial (fpoly-vars p1) (cdr d) (car d))))
+				  (multiple-value-bind (q1 r1) (div-monomials (car d) (fpoly-vars p1) (cdr d)
+															lt-coeff (fpoly-vars p2) lt-powers)
+					(fpoly-incf q q1)
+					(fpoly-incf r r1)
+					(setf p1 (fpoly-sub p1 (fpoly-add dd (fpoly-mul q1 rst)))))))
+		(values q (fpoly-add r p1))))))
+			 
+	  
 		
 	 
 

@@ -293,6 +293,17 @@ arguments."
 				 (if found2 p2 0))))
 		  target-vars))
 
+(defun sub-powers-onto (target-vars vars1 powers1 vars2 powers2)
+  (mapcar (lambda (var)
+			(- (multiple-value-bind (p1 found1) (test-list (lambda (x) (eq x var))
+														   vars1 powers1)
+				 (if found1 p1 0))
+			   (multiple-value-bind (p2 found2) (test-list (lambda (x) (eq x var))
+														   vars2 powers2)
+				 (if found2 p2 0))))
+		  target-vars))
+
+
 
 (defun merge-vars (vars1 vars2)
   (labels ((rec (vars1 vars2 acc)
