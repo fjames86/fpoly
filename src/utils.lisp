@@ -55,6 +55,16 @@
 					  (append acc (list (car list))))))))
 	(rec list 0 nil)))
 
+(defun passoc (item keys vals &key test)
+  "Parallel assoc. Equivalent to "
+  (do ((keys keys (cdr keys))
+	   (vals vals (cdr vals)))
+	  ((or (null keys) (null vals)))
+	(if (if test
+			(funcall test item (car keys))
+			(eql item (car keys)))
+		(return (car vals)))))
+
 (defun group-by (list n)
   "Group a list into sub-lists of length n"
   (do ((i 0 (1+ i))
@@ -305,6 +315,11 @@ arguments."
 						   (append acc (list var)))))))))
     (rec vars1 vars2 nil)))
 
+(defun demerge-vars (subset superset)
+  "Extract the subset vars from the superset in the order in the superset"
+  (loop for var in superset
+	   if (member var subset) collect var))
+
 (defun project-powers (source-vars source-powers target-vars)
   "Project the bindings down onto the vars, which must form a sub-basis of the bindings"
   (labels ((rec (source-vars source-powers acc)
@@ -327,6 +342,26 @@ arguments."
 		(list 0)
 		(nreverse (rec source-vars source-powers nil)))))
 
+(defun project-powers (source-vars source-powers target-vars)
+  (let* ((svars source-vars)
+		 (spowers source-powers)
+		 (ret
+		  (mapcar (lambda (var)
+					(let ((p (position var svars)))
+					  (if (null p)
+						  (error 'fpoly-error
+								 :place "PROJECT-POWERS"
+								 :data (format nil
+											   "Target var ~A is not in the source basis ~A"
+											   var source-vars)))
+					  (setf svars (remove-nth svars p)
+							spowers (remove-nth spowers p)))
+					(passoc var source-vars source-powers))
+				  target-vars)))
+	(if (every (lambda (p)
+				 (zerop p))
+			   spowers)
+		ret)))
 
 (defun shuffle-power-order (source-vars source-powers target-vars)
   "Switch power order around, e.g. from (x=1, y=2) -> (y=2, x=1)"

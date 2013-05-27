@@ -160,15 +160,36 @@
 ;; ------------ division -----------
 
 (defmethod fpoly-div ((p1 number) (p2 number))
-  (/ p1 p2))
-
-(defmethod fpoly-div ((p1 fpoly) (p2 number))
-  (fpoly-mul p1 (/ p2)))
+  (truncate p1 p2))
 
 (defmethod fpoly-div ((p1 number) (p2 fpoly))
-  (fpoly-mul p2 (/ p1)))
+  (values 0 (fpoly-copy p2)))
+
+(defun leading-term (poly ordering)
+  (let* ((vars (fpoly-vars poly))
+		 (ovars (demerge-vars vars ordering)))
+	
+	(labels ((rec (powers)
+			   (let ((coeff (apply #'fpoly-coeff poly
+								   (shuffle-power-order vars powers ovars))))
+				 (if (zerop coeff)
+					 (rec (cdr powers))
+					 (values coeff powers)))))
+		
+  )
 
 (defmethod fpoly-div ((p1 fpoly) (p2 fpoly))
+  (let ((lt (leading-term p2))
+		(rst (fpoly-sub p2 lt)))
+	(do ((q 0)
+		 (r 0))
+		((< (degree (leading-term p1)) (degree lt))
+		 (values q (fpoly-add r p2)))
+	  (multiple-value-bind (q1 r1) (div-monomial (leading-term p1) lt)
+		
+	 
+
+  
   (error "*** fpoly-div: poly division not yet implemented"))
 
 

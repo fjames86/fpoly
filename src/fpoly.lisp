@@ -97,6 +97,23 @@
 		   (symbol-macrolet ((,coeff-var (svref ,gc ,gi)))
 			 ,@body))))))
 
+(defmacro docoeffs* ((fpoly coeff-var powers-var &optional index-var) &body body)
+  (let ((gpowers (gensym "POWERS"))
+		(gc (gensym "COEFFS"))
+		(gi (if index-var index-var (gensym "INDEX")))
+		(gp (gensym "POLY")))	 
+    `(let* ((,gp ,fpoly)
+			(,gc (fpoly-coeffs ,gp)))
+	   (declare (ignorable ,gc))
+       (do ((,gi (1- (fpoly-size ,gp)) (1- ,gi))
+			(,gpowers (reverse (fpoly-powers ,gp)) (cdr ,gpowers)))
+		   ((null ,gpowers))
+		 (let ((,powers-var (car ,gpowers)))
+		   (declare (ignorable ,powers-var))
+		   (symbol-macrolet ((,coeff-var (svref ,gc ,gi)))
+			 ,@body))))))
+
+
 ;; class definition
 (defclass fpoly ()
   ((vars :reader fpoly-vars :initarg :vars)
