@@ -198,8 +198,10 @@
 			 (q 0)
 			 (r 0))
 		(loop for d = (multiple-value-bind (c pws) (leading-term p1 ordering)
-						(cons c pws))
-			 while (>= (reduce #'+ (cdr d)) lt-deg) 
+						(if (or (zerop c) (null pws))
+							nil
+							(cons c pws)))
+			 while (and d (>= (reduce #'+ (cdr d)) lt-deg)) 
 			 do (let ((dd (make-monomial (fpoly-vars p1) (cdr d) (car d))))
 				  (multiple-value-bind (q1 r1) (div-monomials (car d) (fpoly-vars p1) (cdr d)
 															lt-coeff (fpoly-vars p2) lt-powers)
@@ -207,7 +209,10 @@
 					(fpoly-incf r r1)
 					(setf p1 (fpoly-sub p1 (fpoly-add dd (fpoly-mul q1 rst)))))))
 		(values q (fpoly-add r p1))))))
-			 
+
+(defmethod fpoly-div ((p1 fpoly) (p2 number))
+  (fpoly-div p1 (make-fpoly nil 0 (list p2))))
+
 	  
 		
 	 
