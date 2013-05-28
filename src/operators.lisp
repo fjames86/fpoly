@@ -476,15 +476,8 @@ The values may be other polynomials or numbers, all modulo prime"
 (defun fpoly-sum (polys)
   "Efficiently sum a list of polynomials.
 Equivalent to (apply #'reduce #'fpoly-add poly polys) but faster and conses less."
-  (let ((vars (reduce #'merge-vars (mapcar (lambda (poly)
-											 (if (fpoly? poly)
-												 (fpoly-vars poly)))
-										   polys)))
-		(degree (apply #'max (mapcar (lambda (poly)
-									   (if (fpoly? poly)
-										   (fpoly-degree poly)
-										   0))
-									 polys))))
+  (let ((vars (reduce #'merge-vars (mapcar #'fpoly-vars polys)))
+		(degree (apply #'max (mapcar #'fpoly-degree polys))))
 	(let ((p (make-fpoly vars degree)))
 	  (docoeffs (p coeff powers)
 		(setf coeff

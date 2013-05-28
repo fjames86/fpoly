@@ -331,8 +331,7 @@ into a solution matrix."
   (let ((row (1+ i))
 		(canpivot t))
 	(loop while (and (< row n) canpivot) do
-		 (if (and (numberp (aref mat row i))
-				  (zerop (aref mat row i)))
+		 (if (fpoly-zerop (aref mat row i))
 			 (incf row)
 			 (setf canpivot nil)))
 	(if (= row n)
@@ -344,7 +343,7 @@ into a solution matrix."
 (defun swap-rows (mat r1 r2)
   "Destructively swaps elements in rows r1 and r2"
   (let ((n (array-dimension mat 0)))
-	(dotimes (col n)
+	(dotimes (col (1+ n))
 	  (rotatef (aref mat r1 col) (aref mat r2 col)))
 	mat))
 
@@ -383,8 +382,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 			   (if (> i 0) 
 				   (multiple-value-bind (q r) (with-modular-arithmetic prime
 												(truncate (aref a j n) (aref a (1- i) (1- i))))
-					 (declare (ignore r)) ; should be zero
-					 (setf (aref a j n) q)))
+					 (if (zerop r)
+						 (setf (aref a j n) q)
+						 (error 'fpoly-error
+								:place "ECHELON"
+								:data (format nil
+											  "Non-zero remainder of ~A by ~A"
+											  (aref a j n)
+											  (aref a (1- i) (1- i)))))))
+								
 			   (loop for k from (1+ i) to (1- n) do
 					(with-modular-arithmetic prime
 					  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
@@ -393,9 +399,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 						(multiple-value-bind (q r) (with-modular-arithmetic prime
 													 (truncate (aref a j k)
 															   (aref a (1- i) (1- i))))
-						  (declare (ignore r))
-						  (setf (aref a j k) q))))
-			   (setf (aref a j i) 0))
+						  (if (zerop r)
+							  (setf (aref a j k) q)
+							  (error 'fpoly-error
+									 :place "ECHELON"
+									 :data (format nil
+												   "Non-zero remainder of ~A by ~A"
+												   (aref a j k)
+												   (aref a (1- i) (1- i)))))))
+			   (setf (aref a j i) 0)))
 		  (with-modular-arithmetic prime
 			(setf muls (* muls (aref a i i)))
 			(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
@@ -416,8 +428,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 			(muls 1))
 		(dotimes (i (1- n))		
 		  ;; pivot if needed
-		  (if (and (numberp (aref a i i))
-				   (zerop (aref a i i)))
+		  (if (fpoly-zerop (aref a i i))
 			  (progn
 				(pivot a i n)
 				(incf swaps)))
@@ -428,16 +439,30 @@ using the fraction free Gaussian Eliminaton algorithm."
 			   (if (> i 0) 
 				   (multiple-value-bind (q r) (fpoly-div (aref a j n)
 														 (aref a (1- i) (1- i)))
-					 (declare (ignore r)) ; should be zero
-					 (setf (aref a j n) q)))
+					 (if (fpoly-zerop r)
+						 (setf (aref a j n) q)
+						 (error 'fpoly-error
+								:place "FPOLY-ECHELON"
+								:data (format nil
+											  "Non zero remainder of ~A by ~A"
+											  (aref a j n)
+											  (aref a (1- i) (1- i)))))))
+
 			   (loop for k from (1+ i) to (1- n) do
 					(setf (aref a j k) (fpoly-sub (fpoly-mul (aref a i i) (aref a j k))
 												  (fpoly-mul (aref a j i) (aref a i k))))
 					(if (> i 0)
 						(multiple-value-bind (q r) (fpoly-div (aref a j k)
 															  (aref a (1- i) (1- i)))
-						  (declare (ignore r))
-						  (setf (aref a j k) q))))
+						  (if (fpoly-zerop r)
+							  (setf (aref a j k) q)
+							  (error 'fpoly-error
+									 :place "FPOLY-ECHELON"
+									 :data (format nil
+												   "Non-zero remainder of ~A by ~A"
+												   (aref a j k)
+												   (aref a (1- i) (1- i))))))))
+
 			   (setf (aref a j i) 0))
 		  (setf muls (fpoly-mul muls (aref a i i)))
 		  (if (> i 0) (setf muls (fpoly-div muls (aref a (1- i) (1- i))))))
@@ -753,7 +778,7 @@ of max degree with max coeffs."
 	(dotimes (row n)
 	  (setf (aref m row n)
 			(fpoly-simplify (fpoly-sum (loop for i below n collect
-											(fpoly-mul (nth i varvals) (aref m row i)))))))
+											(fpoly-mul (aref m row i) (nth i varvals)))))))
 	
 	(values m varvals)))
 
