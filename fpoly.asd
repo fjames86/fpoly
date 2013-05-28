@@ -25,7 +25,8 @@
 												   "operators" "matrices" "conditions"))
 				 (:file "interface" :depends-on ("package"))
 				 (:file "compiler" :depends-on ("package" "utils" "fpoly" "parser"
-												"operators")))))
+												"operators"))
+				 (:file "fractions" :depends-on ("package" "fpoly")))))
 
   :depends-on (:cffi))
 

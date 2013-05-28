@@ -63,6 +63,9 @@
 
 		   ;; compiler
 		   #:defpoly
+
+		   ;; fractions
+		   #:make-frac
 		   ))
 
 
