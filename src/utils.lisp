@@ -374,6 +374,14 @@ arguments."
 			   spowers)
 		ret)))
 
+(defun project-powers-onto (source-vars source-powers target-vars)
+  (mapcar (lambda (var)
+			(let ((p (passoc var source-vars source-powers)))
+			  (if p
+				  p
+				  0)))
+		  target-vars))
+
 (defun shuffle-power-order (source-vars source-powers target-vars)
   "Switch power order around, e.g. from (x=1, y=2) -> (y=2, x=1)"
   (mapcar (lambda (var)

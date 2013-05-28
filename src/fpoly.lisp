@@ -253,6 +253,10 @@ Returns zero if this is outside the array"
 		(princ "}" stream))
       (print-fpoly p stream)))
 
+(defun fpoly-info (poly &optional (stream t))
+  (format stream "#<FPOLY :VARS ~A :DEGREE ~A :COEFFS ~A>"
+		  (fpoly-vars poly) (fpoly-degree poly) (fpoly-coeffs poly)))
+
 ;;; -------------
 
 (defun fpoly-chinese-remainder (polys nlist)

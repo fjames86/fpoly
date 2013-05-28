@@ -42,6 +42,9 @@
 (defgeneric fpoly-simplify (poly)
   (:documentation "Reduce the degree if higher coefficients are zero"))
 
+(defgeneric fpoly-zerop (poly)
+  (:documentation "Zerop for polys"))
+
 ;;; -------------------- addition ---------------------
 
 
@@ -421,6 +424,9 @@ The values may be other polynomials or numbers, all modulo prime"
 
 ;; ----------------- simplification ---------------------
 
+(defmethod fpoly-simplify ((poly number))
+  poly)
+
 (defun highest-degree (poly)
   "Find the highest degree of the non-zero coefficients"
   (let ((degree 0)
@@ -443,13 +449,19 @@ The values may be other polynomials or numbers, all modulo prime"
 				(if (> power 0)
 					(pushnew var vars)))
 			  pvars powers)))
-	vars))
+	(mapcan (lambda (pvar)
+			  (if (member pvar vars)
+				  (list pvar)))
+			pvars)))
 
 (defmethod fpoly-simplify ((poly fpoly))
   "Return a new polynomial with the minimal variables and degree possible."
-  (let ((vars (involved-vars poly))
+  (let ((svars (fpoly-vars poly))
+		(vars (involved-vars poly))
 		(degree (highest-degree poly)))
 	(let ((p (make-fpoly vars degree)))
+	  (docoeffs (p coeff powers)
+		(setf coeff (apply #'fpoly-coeff poly (project-powers-onto vars powers svars))))
 	  p)))
 
 	  
@@ -485,5 +497,22 @@ Equivalent to (apply #'reduce #'fpoly-add poly polys) but faster and conses less
 						 0)))))
 	  p)))
 
+(defun fpoly-prod (polys)
+  "Find the product of a list of polynomials"
+  (let ((vars (reduce #'merge-vars (mapcar #'fpoly-vars polys)))
+		(degree (apply #'+ (mapcar #'fpoly-degree polys))))
+	(let ((p (make-fpoly vars degree)))
+	  p)))
+		
+  
 ;;; ---------------------------------------
+
+(defmethod fpoly-zerop ((p number))
+  (zerop p))
+
+(defmethod fpoly-zerop ((p fpoly))
+  (every (lambda (n)
+		   (zerop n))
+		 (fpoly-coeffs p)))
+
 
