@@ -20,6 +20,7 @@
 		   #:fpoly-mul
 		   #:fpoly-div
 		   #:fpoly-eql
+		   #:fpoly-zerop
 		   #:fpoly-mod
 		   #:fpoly-expt
 		   #:fpoly-eval
@@ -35,6 +36,7 @@
 		   #:mapmatrix		   
 		   #:solve-system
 		   #:simple-solve
+		   #:direct-solve
 		   
 		   #:gen-test-system
 		   #:def-test-system
@@ -43,6 +45,7 @@
 		   #:print-matrix-mma
 		   
 		   #:echelon
+		   #:fpoly-echelon
 		   #:det
 		   #:invert
 		   #:lu-decompose

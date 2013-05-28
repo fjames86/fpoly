@@ -768,11 +768,17 @@ of max degree with max coeffs."
   (let ((m (make-matrix n))
 		(varvals (if vals vals (loop for i below n collect (random max-coeff)))))
 	(dotimes (row n)
-	  (dotimes (col n)
-		(if (< (random 1.0) entry-density)
-			(setf (aref m row col) (random-poly vars max-degree max-coeff
-												:coeff-density coeff-density))
-			(setf (aref m row col) 0))))
+	  (do ((set-one nil))
+		  (set-one)
+		(dotimes (col n)
+		  (let ((val (if (< (random 1.0) entry-density)			  
+						 (random-poly vars max-degree max-coeff
+									  :coeff-density coeff-density)
+						 0)))
+			(if (not (fpoly-zerop val))
+				(setf set-one t))
+			(setf (aref m row col) val)))))
+			
 
 	;; now set the values on the n-th column
 	(dotimes (row n)

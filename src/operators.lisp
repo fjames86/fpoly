@@ -484,9 +484,7 @@ Equivalent to (apply #'reduce #'fpoly-add poly polys) but faster and conses less
 	  (docoeffs (p coeff powers)
 		(setf coeff
 			  (loop for ply in polys sum
-				   (let ((pws (project-powers vars powers (if (fpoly? ply)
-															  (fpoly-vars ply)))))
-															  
+				   (let ((pws (project-powers vars powers (fpoly-vars ply))))
 					 (if pws
 						 (if (fpoly? ply)
 							 (apply #'fpoly-coeff ply pws)
