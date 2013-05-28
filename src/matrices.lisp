@@ -734,10 +734,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 			(setf coeff c)
 			(unless (zerop c)
 			  (setf setone t)))))
-	(if setone
-		p
-		(fpoly-mod (random (* 2 max-coeff)) max-coeff))))
-
+	(fpoly-simplify p)))
 
 (defun gen-test-system (vars max-degree max-coeff n &key
 						(entry-density 0.5) (coeff-density 0.3) vals)
@@ -754,8 +751,9 @@ of max degree with max coeffs."
 
 	;; now set the values on the n-th column
 	(dotimes (row n)
-	  (setf (aref m row n) (fpoly-sum (loop for i below n collect
-										   (fpoly-mul (nth i varvals) (aref m row i))))))
+	  (setf (aref m row n)
+			(fpoly-simplify (fpoly-sum (loop for i below n collect
+											(fpoly-mul (nth i varvals) (aref m row i)))))))
 	
 	(values m varvals)))
 

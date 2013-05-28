@@ -459,10 +459,12 @@ The values may be other polynomials or numbers, all modulo prime"
   (let ((svars (fpoly-vars poly))
 		(vars (involved-vars poly))
 		(degree (highest-degree poly)))
-	(let ((p (make-fpoly vars degree)))
-	  (docoeffs (p coeff powers)
-		(setf coeff (apply #'fpoly-coeff poly (project-powers-onto vars powers svars))))
-	  p)))
+	(if (zerop degree)
+		(fpoly-coeff poly 0)
+		(let ((p (make-fpoly vars degree)))
+		  (docoeffs (p coeff powers)
+			(setf coeff (apply #'fpoly-coeff poly (project-powers-onto vars powers svars))))
+		  p))))
 
 	  
 ;;; ------------ reducers -------------------------

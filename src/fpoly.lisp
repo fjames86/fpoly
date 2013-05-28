@@ -254,8 +254,10 @@ Returns zero if this is outside the array"
       (print-fpoly p stream)))
 
 (defun fpoly-info (poly &optional (stream t))
-  (format stream "#<FPOLY :VARS ~A :DEGREE ~A :COEFFS ~A>"
-		  (fpoly-vars poly) (fpoly-degree poly) (fpoly-coeffs poly)))
+  (if (fpoly? poly)
+	  (format stream "#<FPOLY :VARS ~A :DEGREE ~A :COEFFS ~A>"
+			  (fpoly-vars poly) (fpoly-degree poly) (fpoly-coeffs poly))
+	  (format stream "~A" poly)))
 
 ;;; -------------
 
