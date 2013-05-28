@@ -166,7 +166,9 @@
   (truncate p1 p2))
 
 (defmethod fpoly-div ((p1 number) (p2 fpoly))
-  (values 0 (fpoly-copy p2)))
+  (if (> (highest-degree p2) 0)
+	  (values p1 0)
+	  (truncate p1 (fpoly-coeff p2 0))))
 
 (defun leading-term (poly ordering)
   (let* ((vars (fpoly-vars poly))
