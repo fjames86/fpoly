@@ -476,10 +476,14 @@ using the fraction free Gaussian Eliminaton algorithm."
 		 (do ((j (1- n) (1- j))
 			  (sum 0 (fpoly-add sum
 								(fpoly-mul (svref b j) (aref a i j)))))
-			 ((= j i)			  
-			  (setf (svref b i) (fpoly-div (fpoly-sub (aref a i n) sum)
-										   (aref a i i))))
-		   (format t "i: ~A j: ~A sum: ~S~%" i j sum)))
+			 ((= j i)
+			  (let ((x (aref a i i)))
+				(if (fpoly-zerop x)
+					(error 'fpoly-error
+						   :place "DIRECT-SOLVE"
+						   :data "Zero diagonal element after row-reduction.")
+					(setf (svref b i) (fpoly-div (fpoly-sub (aref a i n) sum)
+												 x)))))))
 	b))
 
 ;; ----------
