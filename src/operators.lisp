@@ -167,7 +167,7 @@
 
 (defmethod fpoly-div ((p1 number) (p2 fpoly))
   (if (> (highest-degree p2) 0)
-	  (values p1 0)
+	  (values 0 p1)
 	  (truncate p1 (fpoly-coeff p2 0))))
 
 (defun leading-term (poly ordering)

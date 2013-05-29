@@ -38,7 +38,8 @@
 			 (let ((c (read-char stream nil nil)))
 			   (cond
 				 ((null c) acc)
-				 ((digit-char-p c)
+				 ((or (digit-char-p c)
+					  (and (null acc) (member c '(#\+ #\-) :test #'char-equal)))
 				  (rec (cons c acc)))
 				 (t (unread-char c stream)
 					acc)))))
@@ -64,7 +65,7 @@
 			 ;; integer
 			 (unread-char c stream)
 			 (parse-integer (read-digits stream)))
-			((member c '(#\+ #\- #\( #\) #\* #\^ #\}))
+			((member c '(#\+ #\- #\( #\) #\* #\/ #\^ #\}))
 			 ;; special characters
 			 c)
 			(t
@@ -101,24 +102,30 @@
 				 ((numberp word)
 				  (build-monomial (fpoly-mul word acc) (1+ nterms)))
 				 ((symbolp word)
-				  ;; symbol found, does it have a ^power following it?
-				  (let ((next (read-next-word stream))
-						(power 1))
-					(if (and (characterp next)
-							 (char-equal next #\^))
-						(let ((digits (read-digits stream)))
-						  (if (zerop (length digits))
-							  (error 'fpoly-error
-									 :place "PARSE-FPOLY"
-									 :data "Integer power expected after ^ sign.")
-							  (setf power (parse-integer digits))))
-						(unread-next-word next))
-					(let ((p (make-fpoly word power)))
-					  (setf (fpoly-coeff p power) 1)
-					  (build-monomial (fpoly-mul acc p) (1+ nterms)))))
+				   ;; symbol found, does it have a ^power following it?
+				   (let ((next (read-next-word stream))
+						 (power 1))
+					 (if (and (characterp next)
+							  (char-equal next #\^))
+						 (let ((digits (read-digits stream)))
+						    (if (zerop (length digits))
+								 (error 'fpoly-error
+										:place "PARSE-FPOLY"
+										:data "Integer power expected after ^ sign.")
+								  (setf power (parse-integer digits))))
+						 (unread-next-word next))
+					 (let ((p (make-fpoly word (abs power))))
+					    (setf (fpoly-coeff p (abs power)) 1)
+						 (build-monomial (fpoly-mul acc (if (< power 0)
+															    (make-frac 1 p)
+																    p))
+										  (1+ nterms)))))
 				 ((char-equal word #\*)
-				  ;; multiplication
-				  (build-monomial acc nterms))
+				   ;; multiplication
+				   (build-monomial acc nterms))
+				 ((char-equal word #\/)
+				   ;; division
+				   (make-frac acc (build-monomial 1 0)))
 				 ((char-equal word #\+)
 				  ;; addition of new monomial
 				  (if (zerop nterms)
