@@ -342,8 +342,8 @@ into a solution matrix."
 	
 (defun swap-rows (mat r1 r2)
   "Destructively swaps elements in rows r1 and r2"
-  (let ((n (array-dimension mat 0)))
-	(dotimes (col (1+ n))
+  (let ((n (array-dimension mat 1)))
+	(dotimes (col n)
 	  (rotatef (aref mat r1 col) (aref mat r2 col)))
 	mat))
 
@@ -360,12 +360,12 @@ into a solution matrix."
 				   (incf row)))))
 	  solved)))
 
-(defun echelon (a &optional prime)
+(defun echelon (a)
   "Reduce a matrix of numbers to row-echelon form,
 using the fraction free Gaussian Eliminaton algorithm."
   (if (echelon? a)
 	  (values a 0 1)
-	  (let ((n (car (array-dimensions a)))
+	  (let ((n (array-dimension a 0))
 			(swaps 0)
 			(muls 1))
 		(dotimes (i (1- n))		
@@ -376,12 +376,10 @@ using the fraction free Gaussian Eliminaton algorithm."
 				(incf swaps)))
 		  
 		  (loop for j from (1+ i) to (1- n) do
-			   (with-modular-arithmetic prime
-				 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
-									   (* (aref a j i) (aref a i n)))))
+			   (setf (aref a j n) (- (* (aref a i i) (aref a j n))
+									 (* (aref a j i) (aref a i n))))
 			   (if (> i 0) 
-				   (multiple-value-bind (q r) (with-modular-arithmetic prime
-												(truncate (aref a j n) (aref a (1- i) (1- i))))
+				   (multiple-value-bind (q r) (truncate (aref a j n) (aref a (1- i) (1- i)))
 					 (if (zerop r)
 						 (setf (aref a j n) q)
 						 (error 'fpoly-error
@@ -392,13 +390,11 @@ using the fraction free Gaussian Eliminaton algorithm."
 											  (aref a (1- i) (1- i)))))))
 								
 			   (loop for k from (1+ i) to (1- n) do
-					(with-modular-arithmetic prime
-					  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
-											(* (aref a j i) (aref a i k)))))
+					(setf (aref a j k) (- (* (aref a i i) (aref a j k))
+										  (* (aref a j i) (aref a i k))))
 					(if (> i 0)
-						(multiple-value-bind (q r) (with-modular-arithmetic prime
-													 (truncate (aref a j k)
-															   (aref a (1- i) (1- i))))
+						(multiple-value-bind (q r) (truncate (aref a j k)
+															 (aref a (1- i) (1- i)))
 						  (if (zerop r)
 							  (setf (aref a j k) q)
 							  (error 'fpoly-error
@@ -408,9 +404,63 @@ using the fraction free Gaussian Eliminaton algorithm."
 												   (aref a j k)
 												   (aref a (1- i) (1- i)))))))
 			   (setf (aref a j i) 0)))
-		  (with-modular-arithmetic prime
+
+		  (setf muls (* muls (aref a i i)))
+		  (if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i))))))
+		
+		(values a swaps muls))))
+
+(defun echelon-mod (a prime)
+  "Reduce a matrix of numbers to row-echelon form,
+using the fraction free Gaussian Eliminaton algorithm."
+  (if (echelon? a)
+	  (values a 0 1)
+	  (let ((n (array-dimension a 0))
+			(a (matrix-modulo a prime))
+			(swaps 0)			
+			(muls 1))
+		(with-modular-arithmetic prime
+		  (dotimes (i (1- n))		
+			;; pivot if needed
+			(if (zerop (aref a i i))
+				(progn
+				  (pivot a i n)
+				  (incf swaps)))
+			
+			(loop for j from (1+ i) to (1- n) do
+				 (setf (aref a j n) (- (* (aref a i i) (aref a j n))
+									   (* (aref a j i) (aref a i n))))
+
+				 (if (> i 0) 
+					 (multiple-value-bind (q r) (truncate (aref a j n) (aref a (1- i) (1- i)))
+					   (if (zerop r)
+						   (setf (aref a j n) q)
+						   (error 'fpoly-error
+								  :place "ECHELON"
+								  :data (format nil
+												"Non-zero remainder of ~A by ~A"
+												(aref a j n)
+												(aref a (1- i) (1- i)))))))
+				 
+				 (loop for k from (1+ i) to (1- n) do
+					  (setf (aref a j k) (- (* (aref a i i) (aref a j k))
+											(* (aref a j i) (aref a i k))))
+					  (if (> i 0)
+						  (multiple-value-bind (q r) (truncate (aref a j k)
+															   (aref a (1- i) (1- i)))
+							(if (zerop r)
+								(setf (aref a j k) q)
+								(error 'fpoly-error
+									   :place "ECHELON"
+									   :data (format nil
+													 "Non-zero remainder of ~A by ~A"
+													 (aref a j k)
+													 (aref a (1- i) (1- i))))))))
+				 (setf (aref a j i) 0))
+		  
 			(setf muls (* muls (aref a i i)))
 			(if (> i 0) (setf muls (/ muls (aref a (1- i) (1- i)))))))
+		
 		(values a swaps muls))))
 
 (defun echelo (matrix &optional prime)
@@ -574,17 +624,41 @@ using the fraction free Gaussian Eliminaton algorithm."
 	(let ((p (make-identity n)))
 	  (dotimes (i n)
 		(if (zerop (aref matrix i i))
-			(let (row)
-			  (loop for j from (1+ i) to (1- n) do
-				   (if (not (zerop (aref matrix j i)))
-					   (setf row j)))
-			  (if row
-				  (swap-rows p i row)
+			(let ((row (1+ i))
+				  (notfound t))
+			  (loop while (and notfound (< row n)) do
+				   (if (not (zerop (aref matrix row i)))
+					   (setf notfound nil)
+					   (incf row)))
+
+			  (if (= row n)
 				  (error 'fpoly-error
 						 :place "MAKE-PIVOT"
-						 :data "Unable to pivot matrix")))))
+						 :data "Unable to pivot matrix, all zeroes in pivot column")
+				  (swap-rows p i row)))))
 	  p)))
 
+(defun pivotize (matrix)
+  (let ((n (array-dimension matrix 0)))
+	(let ((p (make-identity n)))
+	  (dotimes (i n)
+		(if (zerop (aref matrix i i))
+			(let ((row (1+ i))
+				  (notfound t))
+			  (loop while (and notfound (< row n)) do
+				   (if (not (zerop (aref matrix row i)))
+					   (setf notfound nil)
+					   (incf row)))
+
+			  (if (= row n)
+				  (error 'fpoly-error
+						 :place "MAKE-PIVOT"
+						 :data "Unable to pivot matrix, all zeroes in pivot column"))
+			  
+			  (swap-rows p i row)
+			  (swap-rows matrix i row))))
+	  (values matrix p))))
+		
 (defun make-identity (n)
   "Make an identity matrix"
   (let ((mat (make-array (list n n) :initial-element 0)))
@@ -680,7 +754,7 @@ using the fraction free Gaussian Eliminaton algorithm."
 		(values (mmul p matrix)
 				(mmul l (mmul (invert d) u)))))))
 
-(defun lu-decompose (matrix &optional prime)
+(defun lu-decompose (matrix)
   "Decompose a SQUARE matrix into u l p dd nswaps values"
   (let* ((n (array-dimension matrix 0))
 		 (u (copy-array matrix))
@@ -707,16 +781,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 					   (rotatef (aref p k col) (aref p kpivot col)))))
 			(incf nswaps)))
 	  (setf (aref l k k) (aref u k k)
-			(svref dd k) (with-modular-arithmetic prime
-						   (* oldpivot (aref u k k))))
+			(svref dd k) (* oldpivot (aref u k k)))
+	  
 	  (loop for i from (1+ k) to (1- n) do
 		   (progn
 			 (setf (aref l i k) (aref u i k))
 			 (loop for j from (1+ k) to (1- n) do
-				  (multiple-value-bind (q r) (with-modular-arithmetic prime
-											   (truncate (- (* (aref u k k) (aref u i j))
-															(* (aref u k j) (aref u i k)))
-														 oldpivot))
+				  (multiple-value-bind (q r) (truncate (- (* (aref u k k) (aref u i j))
+														  (* (aref u k j) (aref u i k)))
+													   oldpivot)
 					(unless (zerop r)
 					  (error 'fpoly-error
 							 :place "LU-DECOMPOSE"
@@ -727,10 +800,60 @@ using the fraction free Gaussian Eliminaton algorithm."
 	(setf (svref dd (1- n)) oldpivot)
 	(values u l p dd nswaps)))
 
+(defun lu-decompose-mod (matrix prime)
+  "Decompose a SQUARE matrix into u l p dd nswaps values doing all operations modulo prime"
+  (let* ((n (array-dimension matrix 0))
+		 (u (copy-array matrix))
+		 (l (make-identity n))
+		 (p (make-identity n))
+		 (dd (make-array n))
+		 (oldpivot 1)
+		 (nswaps 0))
+	(with-modular-arithmetic prime
+	  (dotimes (k (1- n))
+		(if (zerop (aref u k k))
+			(let ((kpivot (1+ k))
+				  (notfound t))
+			  (loop while (and (< kpivot n) notfound) do
+				   (if (not (zerop (aref u kpivot k)))
+					   (setf notfound nil)
+					   (incf kpivot)))
+			(if (= kpivot n)
+				(error 'fpoly-error
+					   :place "LU-DECOMPOSE"
+					   :data (format nil "Unable to pivot column ~A. matrix:~% ~A~%" k matrix))
+				(loop for col from k to (1- n) do
+					 (progn
+					   (rotatef (aref u k col) (aref u kpivot col))
+					   (rotatef (aref p k col) (aref p kpivot col)))))
+			(incf nswaps)))
+		(setf (aref l k k) (aref u k k)
+			  (svref dd k) (* oldpivot (aref u k k)))
+		
+		(loop for i from (1+ k) to (1- n) do
+			 (progn
+			   (setf (aref l i k) (aref u i k))
+			   (loop for j from (1+ k) to (1- n) do
+					(multiple-value-bind (q r) (truncate (- (* (aref u k k) (aref u i j))
+															(* (aref u k j) (aref u i k)))
+														 oldpivot)
+					  (unless (zerop r)
+						(error 'fpoly-error
+							   :place "LU-DECOMPOSE"
+							   :data "Remainder non zero: ~A" r))
+					  (setf (aref u i j) q)))
+			   (setf (aref u i k) 0)))
+		(setf oldpivot (aref u k k))))
+	(setf (svref dd (1- n)) oldpivot)
+	(values u l p dd nswaps)))
+
 (defun lu-det (matrix &optional prime)
   "Compute matrix determinant using lu-decompose"
   (let ((n (array-dimension matrix 0)))
-	(multiple-value-bind (u l p dd nswaps) (lu-decompose matrix prime)
+	(multiple-value-bind (u l p dd nswaps) (if prime
+											   (lu-decompose-mod matrix prime)
+											   (lu-decompose matrix))
+	  
 	  (declare (ignore p)) ;; pivot matrix, don't need it
 	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
 		(with-modular-arithmetic prime
@@ -745,9 +868,12 @@ using the fraction free Gaussian Eliminaton algorithm."
   (let ((n (array-dimension matrix 0)))
 	(cond
 	  ((= n 2)
-	   (with-modular-arithmetic prime
-		 (- (* (aref matrix 0 0) (aref matrix 1 1))
-			(* (aref matrix 0 1) (aref matrix 1 0)))))
+	   (if prime
+		   (with-modular-arithmetic prime
+			 (- (* (aref matrix 0 0) (aref matrix 1 1))
+				(* (aref matrix 0 1) (aref matrix 1 0))))
+		   (- (* (aref matrix 0 0) (aref matrix 1 1))
+			  (* (aref matrix 0 1) (aref matrix 1 0)))))
 	  (t (lu-det matrix prime)))))
 
 

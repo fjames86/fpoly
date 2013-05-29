@@ -301,18 +301,15 @@ Always choose the (absolute value) which is smaller of the two options"
 (defmacro with-modular-arithmetic (prime &body body)
   (let ((gprime (gensym "PRIME")))
 	`(let ((,gprime ,prime))
-	   (if ,gprime
-		   (progn
-			 ,@(mapcar (lambda (exp)
-						 (replace-car exp
-									  '((+ . mod-add)
-										(- . mod-sub)
-										(* . mod-mul)
-										(/ . mod-div)
-										(truncate . mod-trunc))
-									  gprime))
-					   body))
-		   (progn ,@body)))))
+	   ,@(mapcar (lambda (exp)
+				   (replace-car exp
+								'((+ . mod-add)
+								  (- . mod-sub)
+								  (* . mod-mul)
+								  (/ . mod-div)
+								  (truncate . mod-trunc))
+								gprime))
+				 body))))
 	   
 
 ;; ------------------ expt -------------------------
