@@ -37,6 +37,14 @@
   (vars :pointer)
   (degree :int))
 
+(defcfun ("fpoly_coeff" libfpoly-get-coeff) :pointer
+  (fp :pointer)
+  (powers :pointer))
+
+(defcfun ("mul_fpoly_coeff" libfpoly-mul-mpz) :void
+  (p :pointer)
+  (val :long))
+
 (defcfun ("intern" libfpoly-intern) :pointer
   (str :pointer))
 
@@ -170,3 +178,4 @@
 
 		(loop for i below nmats collect
 			 (mem-aref dets :int i))))))
+
