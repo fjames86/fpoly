@@ -30,7 +30,7 @@
 
 (defun lagrange-determinant (lagrange-matrix vars degree row &optional prime)
   "Find the determinant of the matrix with the row replaced with the monomials"
-  (let* ((n (car (array-dimensions lagrange-matrix)))
+  (let* ((n (array-dimension lagrange-matrix 0))
 		 (mat (make-array (list n n)))
 		 (m (make-array (list (1- n) (1- n)))))
 	(dotimes (r n)
@@ -87,21 +87,20 @@
 		(let ((points (first-n points need-n))
 			  (vals (first-n vals need-n)))
 		  (let* ((m (form-lagrange-matrix points degree prime))
-				 (delta (det m)))
+				 (delta (det m prime)))
 			(if (zerop delta)
 				(error 'fpoly-error
 					   :place "LAGRANGE-INTERPOLATE"
 					   :data (format nil "Zero determinant of lagrange matrix ~A" m)))
 			(let ((deltas (loop for row below (array-dimension m 0) collect
-							   ;(lagrange-determinant m vars degree row prime))))
-							   (if prime
-								   (fpoly-mod (lagrange-determinant m vars degree row) prime)
-								   (lagrange-determinant m vars degree row)))))
+							   (lagrange-determinant m vars degree row prime))))
 			  (handler-case 
 				  (fpoly-sum (mapcar (lambda (val d)
-									   (fpoly-mul (with-modular-arithmetic prime
-													(/ val delta))
-												  d))
+									   (if prime
+										   (fpoly-mul (with-modular-arithmetic prime
+														(/ val delta))
+													  d)
+										   (fpoly-mul (/ val delta) d)))
 									 vals
 									 deltas))
 				(division-by-zero ()  (error 'fpoly-error
@@ -118,10 +117,10 @@
 	(let ((mat (make-matrix n)))
 	  (doentries (mat entry i j)
 		(if (> j i)
-			(format t "Interpolating with points ~A~%"
-					(mapcar (lambda (matrix)
-							  (aref matrix i j))
-							matrices)))
+			(fpoly-debug "Interpolating with points ~A~%"
+						 (mapcar (lambda (matrix)
+								   (aref matrix i j))
+								 matrices)))
 		(setf entry (lagrange-interpolate vars
 										  points
 										  (mapcar (lambda (matrix)

@@ -856,11 +856,16 @@ using the fraction free Gaussian Eliminaton algorithm."
 	  
 	  (declare (ignore p)) ;; pivot matrix, don't need it
 	  (let ((det (if (zerop (mod nswaps 2)) 1 -1)))
-		(with-modular-arithmetic prime
-		  (dotimes (i n)
-			(setf det (* det (aref u i i)))
-			(setf det (* det (aref l i i)))
-			(setf det (/ det (svref dd i)))))
+		(if prime
+			(with-modular-arithmetic prime
+			  (dotimes (i n)
+				(setf det (* det (aref u i i)))
+				(setf det (* det (aref l i i)))
+				(setf det (/ det (svref dd i)))))
+			(dotimes (i n)
+			  (setf det (* det (aref u i i)))
+			  (setf det (* det (aref l i i)))
+			  (setf det (/ det (svref dd i)))))
 		det))))
 	  
 (defun det (matrix &optional prime)
