@@ -161,7 +161,6 @@
 	(setf (apply #'fpoly-coeff p powers) coeff)
 	p))
 
-  
 (defun fpoly? (p) 
   "Predicate for fpoly"
   (typep p 'fpoly))
