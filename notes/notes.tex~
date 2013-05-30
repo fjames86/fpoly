@@ -1,0 +1,70 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{listings}
+\lstset{language=lisp}
+
+\title{Notes on {\tt libfpoly}}
+\author{Frank James\thanks{email: frank.a.james@gmail.com}}
+
+\begin{document}
+
+\maketitle
+
+\section{Algorithms and data structures}
+Polynomials are implemented as flat arrays of integer coefficients. The coefficients may be fixed precision integers (fixnums)
+or high precision integers (bignums).
+
+\begin{lstlisting}
+  (defun base-offset (num-vars degree)
+    (if (< degree 0)
+        0
+        (ncr (+ num-vars degree)
+        degree)))
+
+  (defun power-offset (powers)
+    (let ((degree (reduce #'+ (cdr powers))))
+      (cond
+        ((or (null (cdr powers))
+             (= (+ (car powers) degree) 0))
+         0)
+        (t
+          (+ (number-terms (length powers) (1- degree))
+          (power-offset (cdr powers)))))))
+
+  (defun offset (powers)
+    (+ (base-offset (length powers) (1- (reduce #'+ powers)))
+    (power-offset powers)))
+  
+\end{lstlisting}
+
+Systems of linear equations with polynomial coefficients can be solved using the fraction free Gaussian elimination (FFGE) algorthim.
+This can be implemented for either integers or polynomials in general.
+
+There are two approaches to implementing FFGE.
+\begin{enumerate}
+  \item
+    Directly implementing FFGE for matrices of polynomial (or integer) entries
+  \item
+    Choosing a set of evaluation points for all the variables in the polynomial entries and then evaluating
+    the matrix at each of these points. This results in a set of matrices of numbers only, which can then be
+    solved using FFGE in the standard way. These can then be combined back into the polynomial solutions using
+    Lagrange interpolation
+\end{enumerate}
+
+In both of these cases, bignum integers are required. This can be overcome by first choosing a set of prime numbers and taking
+the input matrix modulo these. Then either of the above processes can be used to generate solution matrices for each of the primes.
+Finally, these can be combined back into the complete solution using the Chinese Remainder theorem. Using this procedure, only
+fixnum integers are required.
+
+
+
+    
+
+\section{Issues}
+
+\section{Conclusion}
+
+
+
+\end{document}
