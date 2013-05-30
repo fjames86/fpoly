@@ -285,6 +285,16 @@ Returns zero if this is outside the array"
 	  p)))
 
 
+(defun fpoly-density (poly)
+  "Find the density of coefficients"
+  (if (fpoly? poly)
+	  (let ((coeffs (fpoly-coeffs poly)))
+		(/(loop for i below (fpoly-size poly) sum
+			   (if (zerop (svref coeffs i))
+				   0
+				   1))
+		  (fpoly-size poly)))
+	  0))
 
 
 	

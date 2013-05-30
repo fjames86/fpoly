@@ -395,5 +395,18 @@ arguments."
 		  target-vars))
 
 
-		 
+;; ----------------
+
+
+(defmacro time-body (&body body)
+  (let ((gs (gensym))
+		(gs1 (gensym)))
+	`(let ((,gs (with-output-to-string (,gs1)
+				  (let ((*trace-output* ,gs1))
+					(time ,@body)))))
+	   (with-input-from-string (,gs1 ,gs)
+		 (read-line ,gs1 nil nil)
+		 (read ,gs1 nil nil)))))
+
+  
 
