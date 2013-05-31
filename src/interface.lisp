@@ -24,10 +24,7 @@
 
 (handler-case (load-libfpoly *default-libfpoly-pathname*)
   (load-foreign-library-error ()
-	(error 'fpoly-error
-		   :place "LOAD-LIBFPOLY"
-		   :data "Unable to load libfpoly")))
-
+	(error "Unable to load libfpoly")))
 
 
   

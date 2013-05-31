@@ -26,7 +26,9 @@
 				 (:file "interface" :depends-on ("package"))
 				 (:file "compiler" :depends-on ("package" "utils" "fpoly" "parser"
 												"operators"))
-				 (:file "fractions" :depends-on ("package" "fpoly")))))
+				 (:file "fractions" :depends-on ("package" "fpoly"))
+				 (:file "repl" :depends-on ("package" "conditions" "utils"
+													  "fpoly" "operators")))))
 
   :depends-on (:cffi))
 

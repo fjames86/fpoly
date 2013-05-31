@@ -66,6 +66,9 @@
 
 		   ;; fractions
 		   #:make-frac
+
+		   ;; repl
+		   #:fpoly-repl
 		   ))
 
 
