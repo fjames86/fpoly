@@ -260,8 +260,8 @@ Always choose the (absolute value) which is smaller of the two options"
   (make-fpoly (fpoly-vars poly)
 			  (fpoly-degree poly)
 			  (map 'vector
-				   (lambda (n)
-					 (fpoly-mod n divisor))
+				   (lambda (coeff)
+					 (fpoly-mod coeff divisor))
 				   (fpoly-coeffs poly))))
 
 (defun mod-add (x y prime)

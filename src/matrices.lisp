@@ -518,6 +518,63 @@ using the fraction free Gaussian Eliminaton algorithm."
 		  (if (> i 0) (setf muls (fpoly-div muls (aref a (1- i) (1- i))))))
 		(values a swaps muls))))
 
+(defun fpoly-echelon-mod (a prime)
+  "Reduce a matrix of polys to row-echelon form,
+using the fraction free Gaussian Eliminaton algorithm."
+  (if (echelon? a)
+	  (values a 0 1)
+	  (let ((n (array-dimension a 0))
+			(swaps 0)
+			(muls 1))
+		(dotimes (i (1- n))		
+		  ;; pivot if needed
+		  (if (fpoly-zerop (aref a i i))
+			  (progn
+				(pivot a i n)
+				(incf swaps)))
+		  
+		  (loop for j from (1+ i) to (1- n) do
+			   (setf (aref a j n) (fpoly-mod (fpoly-sub (fpoly-mod (fpoly-mul (aref a i i) (aref a j n))
+														prime)
+											 (fpoly-mod (fpoly-mul (aref a j i) (aref a i n))
+														prime))
+											 prime))
+			   (if (> i 0) 
+				   (multiple-value-bind (q r) (fpoly-div (aref a j n)
+														 (aref a (1- i) (1- i)))
+					 (if (fpoly-zerop r)
+						 (setf (aref a j n) q)
+						 (error 'fpoly-error
+								:place "FPOLY-ECHELON"
+								:data (format nil
+											  "Non zero remainder of ~A by ~A"
+											  (aref a j n)
+											  (aref a (1- i) (1- i)))))))
+
+			   (loop for k from (1+ i) to (1- n) do
+					(setf (aref a j k) (fpoly-mod (fpoly-sub (fpoly-mod (fpoly-mul (aref a i i) (aref a j k))
+															 prime)
+												  (fpoly-mod (fpoly-mul (aref a j i) (aref a i k))
+															 prime))
+												  prime))
+					(if (> i 0)
+						(multiple-value-bind (q r) (fpoly-div (aref a j k)
+															  (aref a (1- i) (1- i)))
+						  (if (fpoly-zerop r)
+							  (setf (aref a j k) q)
+							  (error 'fpoly-error
+									 :place "FPOLY-ECHELON"
+									 :data (format nil
+												   "Non-zero remainder of ~A by ~A"
+												   (aref a j k)
+												   (aref a (1- i) (1- i))))))))
+
+			   (setf (aref a j i) 0))
+		  (setf muls (fpoly-mul muls (aref a i i)))
+		  (if (> i 0) (setf muls (fpoly-div muls (aref a (1- i) (1- i))))))
+		(values a swaps muls))))
+
+
 (defun direct-solve (system)
   (let* ((a (fpoly-echelon system))
 		 (n (array-dimension system 0))
@@ -535,6 +592,15 @@ using the fraction free Gaussian Eliminaton algorithm."
 					(setf (svref b i) (fpoly-div (fpoly-sub (aref a i n) sum)
 												 x)))))))
 	b))
+
+(defun direct-solve-mod (system)
+  (let ((primes (choose-primes system)))
+	(fpoly-debug "Chose primes ~A~%" primes)
+	(chinese-remainder-matrices (mapcar (lambda (prime)
+										  (fpoly-debug "Solving for prime ~A~%" prime)
+										  (fpoly-echelon (matrix-modulo system prime)))
+										primes)
+								primes)))
 
 ;; ----------
 

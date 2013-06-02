@@ -264,7 +264,7 @@ Returns zero if this is outside the array"
   "Chinese remainder each coefficient of the polynomials provided."
   (let ((vars (remove-duplicates (mapcan (lambda (poly)
 										   (if (fpoly? poly)
-											   (fpoly-vars poly)))
+											   (mapcar #'identity (fpoly-vars poly))))
 										 polys)))
 		(degree (apply #'max (mapcar (lambda (poly)
 									   (if (fpoly? poly)
