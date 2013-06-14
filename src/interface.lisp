@@ -21,12 +21,9 @@
 	   (t "libfpoly.so"))
 	 (use-foreign-library libfpoly)))
 
-
-(handler-case (load-libfpoly *default-libfpoly-pathname*)
-  (load-foreign-library-error ()
-	(error "Unable to load libfpoly")))
-
-
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (handler-case (load-libfpoly)
+	(load-foreign-library-error () nil)))
   
 ;;; -------------- type definitions -----------------------
 

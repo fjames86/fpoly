@@ -150,6 +150,12 @@ arguments."
 	   (vals nil (cons (car list) vals)))
 	  ((or (= i n) (null list)) (reverse vals))))
 
+(defun arithmetic-sum (start end)
+  (let ((n (- (1+ end) start)))
+	(* n (/ (+ start end) 2))))
+
+
+
 ;;; ---------------- some useful number routines -----------
 
 ;; several prime number related functions follow

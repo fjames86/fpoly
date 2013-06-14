@@ -58,6 +58,8 @@
 		   ;; parsing
 		   #:parse-fpoly
 		   #:parse-fpoly-string
+		   #:enable-fpoly-syntax
+		   #:disable-fpoly-syntax
 		   #:read-matrix
 		   #:load-matrix
 
@@ -71,7 +73,7 @@
 		   #:fpoly-repl
 		   ))
 
-
+;; CFFI interface to C/CUDA library.
 (defpackage #:fpoly-ffi
   (:use #:cl #:cffi)
   (:export #:load-fpoly

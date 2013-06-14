@@ -27,6 +27,18 @@
 	  (- (base-offset num-vars degree)
 		 (base-offset num-vars (1- degree)))))
 
+(defun number-terms% (num-vars degree)
+  (cond
+	((<= num-vars 1)
+	 1)
+	((zerop degree)
+	 1)
+	((= degree 1)
+	 num-vars)
+	(t 
+	 (+ (number-terms% num-vars (1- degree))
+		(number-terms% (1- num-vars) degree)))))
+
 (defun power-offset (powers)
   (let ((degree (reduce #'+ (cdr powers))))
 	(cond

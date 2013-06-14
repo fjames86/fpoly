@@ -181,17 +181,45 @@
 
 ;;; create a reader macro for polynomials #{ }
 
-(set-macro-character #\} (get-macro-character #\)))
+
+(defvar *previous-readtables* nil
+  "A stack which holds the previous readtables that have been pushed
+here by ENABLE-FPOLY-SYNTAX.")
  
-(set-dispatch-macro-character
- #\# #\{
- (lambda (stream char1 char2)
-   (declare (ignore char1 char2))
-   (let ((p (parse-fpoly stream :closing-brace t)))
-	 (if (numberp p)
-		 (make-fpoly nil 0 (list p))
-		 p))))
-							  
+(defun fpoly-reader (stream char1 char2)
+  (declare (ignore char1 char2))
+  (let ((p (parse-fpoly stream :closing-brace t)))
+	(if (numberp p)
+		(make-fpoly nil 0 (list p))
+		p)))
+
+(defun %enable-fpoly-syntax ()
+  "Internal function used to enable reader syntax and store current
+readtable on stack."
+  (push *readtable*
+        *previous-readtables*)
+  (setq *readtable* (copy-readtable))
+  (set-dispatch-macro-character #\# #\{ #'fpoly-reader)
+  (values))
+
+(defun %disable-fpoly-syntax ()
+  "Internal function used to restore previous readtable." 
+  (if *previous-readtables*
+    (setq *readtable* (pop *previous-readtables*))
+    (setq *readtable* (copy-readtable nil)))
+  (values))
+
+(defmacro enable-fpoly-syntax ()
+  "Enable FPOLY reader syntax."
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+    (%enable-fpoly-syntax)))
+
+(defmacro disable-fpoly-syntax ()
+  "Restore readtable which was active before last call to
+ENABLE-FPOLY-SYNTAX. If there was no such call, the standard
+readtable is used."
+  `(eval-when (:compile-toplevel :load-toplevel :execute)
+    (%disable-fpoly-syntax)))
 
 ;;;; ------------- matrices
 
