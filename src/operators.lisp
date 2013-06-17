@@ -193,7 +193,7 @@
 		(multiple-value-bind (q r) (truncate c1 c2)
 		  (values (make-monomial vars powers q)
 				  (make-monomial vars1 powers1 r))))))
-  
+
 (defmethod fpoly-div ((p1 fpoly) (p2 fpoly))
   (let ((ordering (merge-vars (fpoly-vars p1) (fpoly-vars p2))))
 	(multiple-value-bind (lt-coeff lt-powers) (leading-term p2 ordering)
@@ -205,20 +205,19 @@
 		(loop for d = (multiple-value-bind (c pws) (leading-term p1 ordering)
 						(if (or (zerop c) (null pws))
 							nil
-							(cons c pws)))
-			 while (and d (>= (reduce #'+ (cdr d)) lt-deg)) 
-			 do (let ((dd (make-monomial (fpoly-vars p1) (cdr d) (car d))))
-				  (multiple-value-bind (q1 r1) (div-monomials (car d) (fpoly-vars p1) (cdr d)
-															lt-coeff (fpoly-vars p2) lt-powers)
-					(fpoly-incf q q1)
-					(fpoly-incf r r1)
-					(setf p1 (fpoly-sub p1 (fpoly-add dd (fpoly-mul q1 rst)))))))
+							(cons c pws))) 
+		   while (and d (>= (reduce #'+ (cdr d)) lt-deg)) 
+		   do (let ((dd (make-monomial (fpoly-vars p1) (cdr d) (car d))))
+				(multiple-value-bind (q1 r1) (div-monomials (car d) (fpoly-vars p1) (cdr d)
+														   lt-coeff (fpoly-vars p2) lt-powers)
+				  (fpoly-incf q q1)
+				  (fpoly-incf r r1)
+				  (setf p1 (fpoly-sub p1 (fpoly-add dd (fpoly-mul q1 rst)))))))
 		(values q (fpoly-add r p1))))))
 
 (defmethod fpoly-div ((p1 fpoly) (p2 number))
   (fpoly-div p1 (make-fpoly nil 0 (list p2))))
-
-
+  
 ;;; --------------- equality testing -------------
 
 (defmethod fpoly-eql ((p1 number) (p2 number))

@@ -181,7 +181,7 @@
 (defun fpoly-coeff (p &rest powers)
   "Get the coefficient with the powers specified. 
 Returns zero if this is outside the array"
-  (let ((o (offset powers)))
+  (let ((o (if (cdr powers) (offset powers) (car powers))))
     (if (< o (fpoly-size p))	
 		(svref (fpoly-coeffs p) o)
 		0)))
@@ -308,5 +308,12 @@ Returns zero if this is outside the array"
 		  (fpoly-size poly)))
 	  0))
 
+(defun fpoly-shuffle (poly ordering)
+  "Reorder a polynomials variables"
+  (let ((p (make-fpoly ordering (fpoly-degree poly)))
+		(vars (fpoly-vars poly)))
+	(docoeffs (poly coeff powers)
+	  (setf (apply #'fpoly-coeff p (project-powers-onto vars powers ordering))
+			coeff))
+	p))
 
-	
