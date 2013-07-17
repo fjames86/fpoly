@@ -317,3 +317,14 @@ Returns zero if this is outside the array"
 			coeff))
 	p))
 
+(defun fpoly-subpoly (poly subvars)
+  "Get the polynomial involving only the subvars"
+  (let ((p (make-fpoly subvars (fpoly-degree poly)))
+		(vars (fpoly-vars poly)))
+	(docoeffs (poly coeff powers)
+	  (let ((pws (project-powers vars powers subvars)))
+		(if pws
+			(setf (apply #'fpoly-coeff p pws) coeff))))
+	p))
+
+	  

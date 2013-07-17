@@ -415,4 +415,10 @@ arguments."
 		 (read ,gs1 nil nil)))))
 
   
+(defun next-power-of-2 (n)
+  (if (> n 0)
+	  (ash 1 (ceiling (log n 2)))
+	  1))
+
+
 

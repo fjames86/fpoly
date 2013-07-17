@@ -144,3 +144,113 @@
 										   primes)))	
 	m))
 
+
+
+;;; -------------------------------------------
+
+;; discrete fourier transformations
+
+(defun list-insert (value list position)
+  "Returns a new list with the value inserted at the position"
+  (do ((list list (cdr list))
+	   (acc nil (append acc (list (car list))))
+	   (i 0 (1+ i)))
+	  ((= i (car position))
+	   (append acc
+			   (if (cdr position)
+				   (list (list-insert value (car list) (cdr position)))
+				   (list value))
+			   (cdr list)))))
+
+(defun poly-list (poly)
+  "Convert the polynomial to a list representation"
+  (let ((list nil))
+	(docoeffs (poly coeff powers)
+	  (setf list (list-insert coeff list powers)))
+	list))
+	
+(defun fpoly-dft (poly)
+  "Discrete fourier transform of the polynomial"
+  (let ((plist (poly-list poly)))
+	(dft plist)))
+
+(defun horner-eval (coeffs points)
+  (let ((point (car points)))
+	(reduce (lambda (coeff acc)
+			  (+ coeff (* acc point)))
+			(if (cdr points)
+				(mapcar (lambda (coeffs)
+						  (horner-eval coeffs (cdr points)))
+						coeffs)
+				coeffs))))
+(defun split-poly (poly)
+  (let* ((n (next-power-of-2 (fpoly-degree poly)))
+		 (n/2 (/ n 2))
+		 (p0 (make-fpoly (fpoly-vars poly) n/2))
+		 (p1 (make-fpoly (fpoly-vars poly) n/2)))
+	(docoeffs (poly coeff powers i)
+	  (if (zerop (mod i 2))
+		  (setf (fpoly-coeff p0 (floor i 2)) coeff)
+		  (setf (fpoly-coeff p1 (1+ (floor i 2))) coeff)))
+	(list p0 p1)))
+
+(defun dft (coeffs)
+  (dft-1d (mapcar (lambda (coeff)
+					(if (listp coeff)
+						(dft coeff)
+						coeff))
+				  coeffs)))
+
+(defun list-even-odd (list)
+  (do ((list list (cdr list))
+	   (i 0 (1+ i))
+	   (even nil)
+	   (odd nil))
+	  ((null list) (values (nreverse even) (nreverse odd)))
+	(if (zerop (mod i 2))
+		(push (car list) even)
+		(push (car list) odd))))
+
+(defun dft-1d (coeffs)
+  (let ((n (length coeffs)))
+	(if (= n 1)
+		coeffs
+		(let ((wn (expi (/ (* 2 pi) n)))
+			  (w 1))
+		  (multiple-value-bind (a0 a1) (list-even-odd coeffs)
+			(do ((b0 (dft-1d a0) (cdr b0))
+				 (b1 (dft-1d a1) (cdr b1))			  
+				 (k 0 (1+ k))
+				 (al nil)
+				 (au nil))
+				((null b1)
+				 (append (nreverse al) (nreverse au)))
+			  (push (floor (realpart (+ (car b0) (* w (car b1))))) al)
+			  (push (floor (realpart (- (car b0) (* w (car b1))))) au)
+			  (setf w (* w wn))))))))
+				  
+				
+;;;;
+
+;;; dft:
+;;; X_k = \sum_{n=0, N-1} exp(2*pi*i*k/N)x_n
+;;;
+;;; multidimensional dft:
+;;; vector k, n
+;;; X_k = \sum_{n} exp(2*pi*i (n/N))*x_n
+;;; where (n/N) = (n0/N0, n1/N1, n2/N2, ...)
+;;;
+
+			 
+(defun split-poly (poly)
+  (let* ((n (next-power-of-2 (fpoly-degree poly)))
+		 (n/2 (/ n 2))
+		 (p0 (make-fpoly (fpoly-vars poly) n/2))
+		 (p1 (make-fpoly (fpoly-vars poly) n/2)))
+	(docoeffs (poly coeff powers i)
+	  (if (zerop (mod i 2))
+		  (setf (fpoly-coeff p0 (floor i 2)) coeff)
+		  (setf (fpoly-coeff p1 (1+ (floor i 2))) coeff)))
+	(list p0 p1)))
+
+
